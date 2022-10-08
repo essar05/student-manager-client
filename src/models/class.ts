@@ -1,10 +1,16 @@
-import { Student } from "./student";
+import { Student } from './student'
+import { School } from './school'
+import { StudentPerformance } from './studentPerformance'
 
 export interface Class {
-  id: number;
+  id: number
 
-  school: string;
-  year: number;
+  schoolYear: number
+  label: string
 
-  students?: Student[];
+  school: School
+
+  students?: Student[]
+
+  studentsPerformance?: StudentPerformance[]
 }

@@ -5,7 +5,6 @@ export interface Student {
 
   firstName: string;
   lastName: string;
-  classId: number;
 
   class?: Class;
 }

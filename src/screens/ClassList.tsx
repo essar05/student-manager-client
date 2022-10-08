@@ -1,60 +1,73 @@
-import React, { useEffect } from "react";
-import { RootStackScreenProps } from "../navigation/types";
-import { Appbar, Button, Card, Paragraph, Title } from "react-native-paper";
-import { Class } from "../models/class";
-import { useClassStore } from "../stores/classStore";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect } from 'react'
+import { RootStackScreenProps } from '../navigation/types'
+import { ActivityIndicator, Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
+import { useClassStore } from '../stores/classStore'
+import { ScrollView, StyleSheet } from 'react-native'
 
 export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
-  const fetchClasses = useClassStore((state) => state.fetch);
-  const classes = useClassStore((state) => state.classes);
-  const isLoading = useClassStore((state) => state.isLoading);
-  const isInitialized = useClassStore((state) => state.isInitialized);
+  const theme = useTheme()
+
+  const fetchClasses = useClassStore(state => state.fetch)
+  const classes = useClassStore(state => state.classes)
+  const isLoading = useClassStore(state => state.isLoading)
+  const isInitialized = useClassStore(state => state.isInitialized)
 
   useEffect(() => {
     if (!isInitialized) {
-      fetchClasses();
+      fetchClasses()
     }
-  }, [ isInitialized ]);
+  }, [fetchClasses, isInitialized])
+
+  const styles = makeStyles(theme)
 
   return (
-    <View>
-      <Appbar.Header>
-        {/*<Appbar.BackAction color={'#fff'} onPress={() => navigation.navigate('TabTwo')}/>*/}
-        <Appbar.Content title="Classes"/>
+    <ScrollView style={styles.surface}>
+      <Appbar.Header style={styles.appbar}>
+        <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
       </Appbar.Header>
 
-      {isLoading && <Text>Loading...</Text>}
+      {isLoading && <ActivityIndicator animating={true} />}
 
-      {!isLoading &&
-          <ScrollView style={styles.cards}>
-            {classes.map(class_ => (
+      {!isLoading && (
+        <ScrollView style={styles.cards}>
+          {Object.keys(classes).map((id: string) => {
+            const classId = parseInt(id)
+            const class_ = classes[classId]
+
+            return (
               <Card
-                key={class_.id}
+                key={id}
                 style={styles.card}
-                elevation={5}
+                elevation={1}
                 onPress={() => props.navigation.navigate('Root', { screen: 'Class', params: { id: class_.id } })}
               >
-                <Card.Title title={`Clasa a ${class_.year}-a`} subtitle={class_.school}/>
+                <Card.Title title={`${class_.schoolYear}${class_.label}`} subtitle={class_.school.name} titleVariant={'titleLarge'} />
               </Card>
-            ))}
-          </ScrollView>
-      }
-    </View>
-  );
-};
+            )
+          })}
+        </ScrollView>
+      )}
+    </ScrollView>
+  )
+}
 
-const styles = StyleSheet.create({
-  surface: {
-    flex: 1,
-    minHeight: '100%'
-  },
-  cards: {
-    paddingTop: 20,
-    paddingHorizontal: 10
-  },
-  card: {
-    marginBottom: 10,
-    padding: 10
-  }
-});
+const makeStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    surface: {
+      flex: 1,
+      minHeight: '100%',
+      backgroundColor: theme.colors.background,
+    },
+    appbar: {
+      backgroundColor: theme.colors.primary,
+      color: theme.colors.inversePrimary,
+    },
+    cards: {
+      paddingTop: 20,
+      paddingHorizontal: 10,
+    },
+    card: {
+      marginBottom: 15,
+      padding: 10,
+    },
+  })

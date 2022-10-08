@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react'
 import { RootStackScreenProps } from '../navigation/types'
 import { ActivityIndicator, Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
-import { useClassStore } from '../stores/classStore'
 import { ScrollView, StyleSheet } from 'react-native'
+import { useStore } from '../shared/hooks/useStore'
 
 export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
 
-  const fetchClasses = useClassStore(state => state.fetch)
-  const classes = useClassStore(state => state.classes)
-  const isLoading = useClassStore(state => state.isLoading)
-  const isInitialized = useClassStore(state => state.isInitialized)
+  const fetchClasses = useStore(state => state.fetch)
+  const classes = useStore(state => state.classes)
+  const isLoading = useStore(state => state.isLoading)
+  const isInitialized = useStore(state => state.isInitialized)
 
   useEffect(() => {
     if (!isInitialized) {

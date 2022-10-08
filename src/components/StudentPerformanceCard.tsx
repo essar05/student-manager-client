@@ -3,8 +3,8 @@ import { Button, Card, Chip, Divider, IconButton, MD3Theme, Menu, Text, useTheme
 import { StyleSheet, View, ViewStyle } from 'react-native'
 import { negativeColor, positiveColor } from '../constants/Colors'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { StudentPerformance } from '../models/studentPerformance'
-import { useClassStore } from '../stores/classStore'
+import { StudentPerformance } from '../shared/store/models/studentPerformance'
+import { useStore } from '../shared/hooks/useStore'
 
 export interface StudentPerformanceCardProps {
   studentPerformance: StudentPerformance
@@ -17,10 +17,10 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
 
   const [isMenuVisible, setMenuVisible] = useState(false)
 
-  const addActivityScore = useClassStore(state => state.addActivityScore)
-  const addActivityPoints = useClassStore(state => state.addActivityPoints)
-  const addMissingHomework = useClassStore(state => state.addMissingHomework)
-  const addLoudnessWarning = useClassStore(state => state.addLoudnessWarning)
+  const addActivityScore = useStore(state => state.addActivityScore)
+  const addActivityPoints = useStore(state => state.addActivityPoints)
+  const addMissingHomework = useStore(state => state.addMissingHomework)
+  const addLoudnessWarning = useStore(state => state.addLoudnessWarning)
 
   const handleAddMark = useCallback(
     (mark: number) => () => {

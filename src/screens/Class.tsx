@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { RootStackScreenProps } from '../navigation/types'
 import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
 import { RefreshControl, ScrollView, StyleSheet, TextInput } from 'react-native'
-import { useClassStore } from '../stores/classStore'
 import { StudentPerformanceCard } from '../components/StudentPerformanceCard'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+import { useStore } from '../shared/hooks/useStore'
 
 export const Class = (props: RootStackScreenProps<'Class'>) => {
   const theme = useTheme()
@@ -15,9 +15,9 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
     [props.route?.params]
   )
 
-  const fetchClass = useClassStore(state => state.fetchById)
-  const class_ = useClassStore(state => (id ? state.classes[id] : undefined))
-  const isLoading = useClassStore(state => state.isLoading)
+  const fetchClass = useStore(state => state.fetchById)
+  const class_ = useStore(state => (id ? state.classes[id] : undefined))
+  const isLoading = useStore(state => state.isLoading)
 
   const areDetailsLoaded = useMemo(() => class_?.studentsPerformance, [class_?.studentsPerformance])
 

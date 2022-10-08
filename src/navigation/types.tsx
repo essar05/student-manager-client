@@ -13,6 +13,7 @@ declare global {
 }
 
 export type AppStackParamList = {
+  Login: undefined;
   Root: NavigatorScreenParams<RootStackParamList> | undefined;
   Modal: undefined;
   NotFound: undefined;

@@ -5,6 +5,7 @@ import { RefreshControl, ScrollView, StyleSheet, TextInput } from 'react-native'
 import { StudentPerformanceCard } from '../components/StudentPerformanceCard'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { useStore } from '../shared/hooks/useStore'
+import { PageContainer } from '../components/PageContainer'
 
 export const Class = (props: RootStackScreenProps<'Class'>) => {
   const theme = useTheme()
@@ -60,7 +61,7 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
   const styles = makeStyles(theme)
 
   return (
-    <ScrollView
+    <PageContainer
       key={id}
       style={styles.surface}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
@@ -120,7 +121,7 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
           )}
         </ScrollView>
       )}
-    </ScrollView>
+    </PageContainer>
   )
 }
 

@@ -1,10 +1,12 @@
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { MD3DarkTheme, MD3LightTheme, Provider as PaperProvider } from 'react-native-paper';
-import useCachedResources from './src/hooks/useCachedResources';
-import useColorScheme from './src/hooks/useColorScheme';
-import Navigation from './src/navigation/navigation';
-import React from 'react';
+import { StatusBar } from 'expo-status-bar'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { MD3DarkTheme, MD3LightTheme, Provider as PaperProvider } from 'react-native-paper'
+import useCachedResources from './src/hooks/useCachedResources'
+import useColorScheme from './src/hooks/useColorScheme'
+import Navigation from './src/navigation/navigation'
+import React, { useEffect } from 'react'
+import { useStore } from './src/shared/hooks/useStore'
+import { getStorageItem } from './src/shared/storage'
 
 export const LIGHT_THEME = {
   ...MD3LightTheme,
@@ -20,8 +22,8 @@ export const LIGHT_THEME = {
     // surface: 'green',
     // text: '#ffffff',
     // backdrop: 'pink'
-  }
-};
+  },
+}
 
 const DARK_THEME = {
   ...MD3DarkTheme,
@@ -32,24 +34,50 @@ const DARK_THEME = {
     background: 'rgb(26,26,30)',
     primary: 'rgb(138,104,210)',
     accent: '#f1c40f',
-    surface: 'rgb(53,50,58)'
-  }
-};
+    surface: 'rgb(53,50,58)',
+  },
+}
 
 export default function App() {
-  const isLoadingComplete = useCachedResources();
-  const colorScheme = useColorScheme();
+  const isAuthenticated = useStore(state => state.isAuthenticated)
+  const updateToken = useStore(state => state.updateToken)
+  const logout = useStore(state => state.logout)
 
-  if (!isLoadingComplete) {
-    return null;
+  useEffect(() => {
+    const initialize = async () => {
+      if (!isAuthenticated) {
+        let authToken
+
+        try {
+          authToken = await getStorageItem('auth-token')
+        } catch (e) {
+          // Restoring token failed
+        }
+
+        if (authToken) {
+          updateToken(authToken)
+        } else {
+          logout()
+        }
+      }
+    }
+
+    initialize()
+  }, [updateToken, isAuthenticated, logout])
+
+  const isLoadingComplete = useCachedResources()
+  const colorScheme = useColorScheme()
+
+  if (!isLoadingComplete || isAuthenticated === undefined) {
+    return null
   } else {
     return (
       <SafeAreaProvider>
         <PaperProvider theme={colorScheme === 'dark' ? DARK_THEME : LIGHT_THEME}>
-          <Navigation colorScheme={colorScheme}/>
-          <StatusBar/>
+          <Navigation colorScheme={colorScheme} />
+          <StatusBar />
         </PaperProvider>
       </SafeAreaProvider>
-    );
+    )
   }
 }

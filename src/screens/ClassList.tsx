@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { RootStackScreenProps } from '../navigation/types'
 import { ActivityIndicator, Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
 import { ScrollView, StyleSheet } from 'react-native'
 import { useStore } from '../shared/hooks/useStore'
+import { PageContainer } from '../components/PageContainer'
+import { clearStorageItem } from '../shared/storage'
 
 export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
@@ -11,6 +13,13 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
   const classes = useStore(state => state.classes)
   const isLoading = useStore(state => state.isLoading)
   const isInitialized = useStore(state => state.isInitialized)
+
+  const logout = useStore(state => state.logout)
+
+  const handleLogout = useCallback(() => {
+    logout()
+    clearStorageItem("auth-token").then()
+  }, [logout])
 
   useEffect(() => {
     if (!isInitialized) {
@@ -21,9 +30,10 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
   const styles = makeStyles(theme)
 
   return (
-    <ScrollView style={styles.surface}>
+    <PageContainer style={styles.surface}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
+        <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
       </Appbar.Header>
 
       {isLoading && <ActivityIndicator animating={true} />}
@@ -47,7 +57,7 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
           })}
         </ScrollView>
       )}
-    </ScrollView>
+    </PageContainer>
   )
 }
 

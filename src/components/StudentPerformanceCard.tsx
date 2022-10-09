@@ -18,9 +18,12 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
   const [isMenuVisible, setMenuVisible] = useState(false)
 
   const addActivityScore = useStore(state => state.addActivityScore)
+  const deleteActivityScore = useStore(state => state.deleteActivityScore)
   const addActivityPoints = useStore(state => state.addActivityPoints)
   const addMissingHomework = useStore(state => state.addMissingHomework)
+  const deleteLastMissingHomework = useStore(state => state.deleteLastMissingHomework)
   const addLoudnessWarning = useStore(state => state.addLoudnessWarning)
+  const deleteLastLoudnessWarning = useStore(state => state.deleteLastLoudnessWarning)
 
   const handleAddMark = useCallback(
     (mark: number) => () => {
@@ -28,6 +31,14 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
     },
     [addActivityScore, studentPerformance.classId, studentPerformance.id]
   )
+
+  const handleDeleteLastMark = useCallback(() => {
+    const lastActivityScoreId = studentPerformance.activityScores?.[studentPerformance.activityScores.length - 1]?.id
+
+    if (lastActivityScoreId) {
+      deleteActivityScore(studentPerformance.classId, studentPerformance.id, lastActivityScoreId)
+    }
+  }, [deleteActivityScore, studentPerformance.activityScores, studentPerformance.classId, studentPerformance.id])
 
   const handleUpVote = useCallback(() => {
     addActivityPoints(studentPerformance.classId, studentPerformance.id, 1)
@@ -43,11 +54,23 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
     setMenuVisible(false)
   }, [addMissingHomework, studentPerformance.classId, studentPerformance.id])
 
+  const handleDeleteMissingHomework = useCallback(() => {
+    deleteLastMissingHomework(studentPerformance.classId, studentPerformance.id)
+
+    setMenuVisible(false)
+  }, [deleteLastMissingHomework, studentPerformance.classId, studentPerformance.id])
+
   const handleAddLoudnessWarning = useCallback(() => {
     addLoudnessWarning(studentPerformance.classId, studentPerformance.id)
 
     setMenuVisible(false)
   }, [addLoudnessWarning, studentPerformance.classId, studentPerformance.id])
+
+  const handleDeleteLoudnessWarning = useCallback(() => {
+    deleteLastLoudnessWarning(studentPerformance.classId, studentPerformance.id)
+
+    setMenuVisible(false)
+  }, [deleteLastLoudnessWarning, studentPerformance.classId, studentPerformance.id])
 
   const averageActivityScore = useMemo(() => {
     return studentPerformance.activityScores && studentPerformance.activityScores.length > 0
@@ -81,20 +104,20 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
               anchor={<IconButton icon="dots-vertical" mode={undefined} onPress={() => setMenuVisible(true)} />}
             >
               <Menu.Item onPress={handleAddMissingHomework} title="Adauga tema nefacuta" />
-              <Menu.Item onPress={() => {}} title="Sterge tema nefacuta" />
+              <Menu.Item onPress={handleDeleteMissingHomework} disabled={!studentPerformance.missingHomeworks} title="Sterge tema nefacuta" />
 
               <Divider bold style={styles.menuDivider} />
 
               <Menu.Item onPress={handleAddLoudnessWarning} title="Adauga punct zgomot" />
-              <Menu.Item onPress={() => {}} title="Sterge punct zgomot" />
+              <Menu.Item onPress={handleDeleteLoudnessWarning} disabled={!studentPerformance.loudnessWarnings} title="Sterge punct zgomot" />
 
               <Divider bold style={styles.menuDivider} />
 
-              <Menu.Item onPress={() => {}} title="Sterge ultima nota" />
+              <Menu.Item onPress={handleDeleteLastMark} disabled={!studentPerformance.activityScores?.length} title="Sterge ultima nota" />
 
               <Divider bold style={styles.menuDivider} />
 
-              <Menu.Item onPress={() => {}} title="Vezi detalii" />
+              <Menu.Item onPress={() => {}} title="Vezi detalii" disabled />
             </Menu>
           </>
         )}

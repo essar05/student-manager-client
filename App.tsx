@@ -45,7 +45,7 @@ export default function App() {
 
   useEffect(() => {
     const initialize = async () => {
-      if (!isAuthenticated) {
+      if (isAuthenticated === undefined) {
         let authToken
 
         try {

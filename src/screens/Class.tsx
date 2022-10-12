@@ -35,13 +35,17 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
   const handleSearchKeywordChange = useCallback(value => setSearchKeyword(value), [])
 
   const studentsPerformance = useMemo(() => {
-    return isSearching
+    const filteredStudentPerformances = isSearching
       ? class_?.studentsPerformance?.filter(
           studentPerformance =>
             studentPerformance.student.firstName.includes(searchKeyword) ||
             studentPerformance.student.lastName.includes(searchKeyword)
         )
       : class_?.studentsPerformance
+
+    return filteredStudentPerformances
+      ? [...filteredStudentPerformances].sort((a, b) => a.student.lastName.localeCompare(b.student.lastName))
+      : undefined
   }, [class_?.studentsPerformance, isSearching, searchKeyword])
 
   const handleRefresh = useCallback(() => id && fetchClass(id), [fetchClass, id])

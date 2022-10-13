@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react'
 import { RootStackScreenProps } from '../navigation/types'
 import { ActivityIndicator, Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
-import { ScrollView, StyleSheet } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { useStore } from '../shared/hooks/useStore'
 import { PageContainer } from '../components/PageContainer'
 import { clearStorageItem } from '../shared/storage'
@@ -16,9 +16,11 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
 
   const logout = useStore(state => state.logout)
 
+  const handleRefresh = useCallback(() => !isLoading && fetchClasses(), [isLoading, fetchClasses])
+
   const handleLogout = useCallback(() => {
     logout()
-    clearStorageItem("auth-token").then()
+    clearStorageItem('auth-token').then()
   }, [logout])
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
   const styles = makeStyles(theme)
 
   return (
-    <PageContainer style={styles.surface}>
+    <PageContainer refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
         <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
@@ -51,7 +53,11 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
                 elevation={1}
                 onPress={() => props.navigation.navigate('Root', { screen: 'Class', params: { id: class_.id } })}
               >
-                <Card.Title title={`${class_.schoolYear}${class_.label}`} subtitle={class_.school.name} titleVariant={'titleLarge'} />
+                <Card.Title
+                  title={`${class_.schoolYear}${class_.label}`}
+                  subtitle={class_.school.name}
+                  titleVariant={'titleLarge'}
+                />
               </Card>
             )
           })}
@@ -63,11 +69,6 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
 
 const makeStyles = (theme: MD3Theme) =>
   StyleSheet.create({
-    surface: {
-      flex: 1,
-      minHeight: '100%',
-      backgroundColor: theme.colors.background,
-    },
     appbar: {
       backgroundColor: theme.colors.primary,
       color: theme.colors.inversePrimary,

@@ -67,7 +67,6 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
   return (
     <PageContainer
       key={id}
-      style={styles.surface}
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
     >
       <Appbar.Header style={styles.appbar}>
@@ -131,11 +130,6 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
 
 const makeStyles = (theme: MD3Theme) =>
   StyleSheet.create({
-    surface: {
-      flex: 1,
-      minHeight: '100%',
-      backgroundColor: theme.colors.background,
-    },
     cards: {
       paddingTop: 20,
       paddingHorizontal: 10,

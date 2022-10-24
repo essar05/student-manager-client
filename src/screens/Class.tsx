@@ -1,13 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { RootStackScreenProps } from '../navigation/types'
 import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
-import { RefreshControl, ScrollView, StyleSheet, TextInput } from 'react-native'
+import { InteractionManager, RefreshControl, ScrollView, StyleSheet, TextInput } from 'react-native'
 import { StudentPerformanceCard } from '../components/StudentPerformanceCard'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { useStore } from '../shared/hooks/useStore'
 import { PageContainer } from '../components/PageContainer'
+import { useFocusEffect } from '@react-navigation/native'
 
-export const Class = (props: RootStackScreenProps<'Class'>) => {
+export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const theme = useTheme()
 
   const id = useMemo(
@@ -18,12 +19,15 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
 
   const fetchClass = useStore(state => state.fetchById)
   const class_ = useStore(state => (id ? state.classes[id] : undefined))
-  const isLoading = useStore(state => state.isLoading)
+  const isStoreLoading = useStore(state => state.isLoading)
 
   const areDetailsLoaded = useMemo(() => class_?.studentsPerformance, [class_?.studentsPerformance])
 
+  const [isScreenInitialized, setScreenInitialized] = useState(false)
   const [isSearching, setSearching] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
+
+  const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
 
   const handleSearchingChange = useCallback(
     (enabled: boolean) => () => {
@@ -62,13 +66,16 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
     }
   }, [isSearching])
 
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setScreenInitialized(true)
+    })
+  }, [])
+
   const styles = makeStyles(theme)
 
   return (
-    <PageContainer
-      key={id}
-      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
-    >
+    <PageContainer key={id} refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.BackAction
           color={theme.colors.onPrimary}
@@ -126,7 +133,7 @@ export const Class = (props: RootStackScreenProps<'Class'>) => {
       )}
     </PageContainer>
   )
-}
+})
 
 const makeStyles = (theme: MD3Theme) =>
   StyleSheet.create({

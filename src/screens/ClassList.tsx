@@ -1,27 +1,41 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { RootStackScreenProps } from '../navigation/types'
 import { ActivityIndicator, Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native'
+import { InteractionManager, RefreshControl, ScrollView, StyleSheet } from 'react-native'
 import { useStore } from '../shared/hooks/useStore'
 import { PageContainer } from '../components/PageContainer'
 import { clearStorageItem } from '../shared/storage'
 
-export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
+export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
 
   const fetchClasses = useStore(state => state.fetch)
   const classes = useStore(state => state.classes)
-  const isLoading = useStore(state => state.isLoading)
+  const isStoreLoading = useStore(state => state.isLoading)
   const isInitialized = useStore(state => state.isInitialized)
 
   const logout = useStore(state => state.logout)
 
-  const handleRefresh = useCallback(() => !isLoading && fetchClasses(), [isLoading, fetchClasses])
+  const [isScreenInitialized, setScreenInitialized] = useState(false)
+
+  const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
+
+  const handleRefresh = useCallback(() => !isStoreLoading && fetchClasses(), [isStoreLoading, fetchClasses])
 
   const handleLogout = useCallback(() => {
     logout()
     clearStorageItem('auth-token').then()
   }, [logout])
+
+  const handleNavigate = useCallback(
+    (id: number) => () => {
+      props.navigation.navigate('Root', {
+        screen: 'Class',
+        params: { id: id },
+      })
+    },
+    [props.navigation]
+  )
 
   useEffect(() => {
     if (!isInitialized) {
@@ -29,7 +43,33 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
     }
   }, [fetchClasses, isInitialized])
 
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setScreenInitialized(true)
+    })
+  }, [])
+
   const styles = makeStyles(theme)
+
+  const CardList = useMemo(() => Object.keys(classes).map((id: string) => {
+    const classId = parseInt(id)
+    const class_ = classes[classId]
+
+    return (
+      <Card
+        key={id}
+        style={styles.card}
+        elevation={1}
+        onPress={handleNavigate(class_.id)}
+      >
+        <Card.Title
+          title={`${class_.schoolYear}${class_.label}`}
+          subtitle={class_.school.name}
+          titleVariant={'titleLarge'}
+        />
+      </Card>
+    )
+  }), [classes, handleNavigate, styles.card])
 
   return (
     <PageContainer refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}>
@@ -42,30 +82,12 @@ export const ClassList = (props: RootStackScreenProps<'ClassList'>) => {
 
       {!isLoading && (
         <ScrollView style={styles.cards}>
-          {Object.keys(classes).map((id: string) => {
-            const classId = parseInt(id)
-            const class_ = classes[classId]
-
-            return (
-              <Card
-                key={id}
-                style={styles.card}
-                elevation={1}
-                onPress={() => props.navigation.navigate('Root', { screen: 'Class', params: { id: class_.id } })}
-              >
-                <Card.Title
-                  title={`${class_.schoolYear}${class_.label}`}
-                  subtitle={class_.school.name}
-                  titleVariant={'titleLarge'}
-                />
-              </Card>
-            )
-          })}
+          {CardList}
         </ScrollView>
       )}
     </PageContainer>
   )
-}
+})
 
 const makeStyles = (theme: MD3Theme) =>
   StyleSheet.create({

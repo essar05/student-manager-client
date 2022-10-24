@@ -17,6 +17,8 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
 
   const [isMenuVisible, setMenuVisible] = useState(false)
 
+  const [isOperationLoading, setOperationLoading] = useState(false)
+
   const addActivityScore = useStore(state => state.addActivityScore)
   const deleteActivityScore = useStore(state => state.deleteActivityScore)
   const addActivityPoints = useStore(state => state.addActivityPoints)
@@ -40,8 +42,12 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
     }
   }, [deleteActivityScore, studentPerformance.activityScores, studentPerformance.classId, studentPerformance.id])
 
-  const handleUpVote = useCallback(() => {
-    addActivityPoints(studentPerformance.classId, studentPerformance.id, 1)
+  const handleUpVote = useCallback(async () => {
+    setOperationLoading(true)
+
+    await addActivityPoints(studentPerformance.classId, studentPerformance.id, 1)
+
+    setOperationLoading(false)
   }, [addActivityPoints, studentPerformance.classId, studentPerformance.id])
 
   const handleDownVote = useCallback(() => {
@@ -207,6 +213,7 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
             mode="outlined"
             textColor={theme.colors.onSurface}
             onPress={handleAddMark(mark)}
+            disabled={isOperationLoading}
           >
             {mark}
           </Button>
@@ -219,6 +226,7 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
           textColor={positiveColor}
           mode="outlined"
           onPress={handleUpVote}
+          disabled={isOperationLoading}
         >
           <Icon name="thumb-up" size={16} />
         </Button>
@@ -234,6 +242,7 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
             textColor={theme.colors.onSurface}
             mode="outlined"
             onPress={handleAddMark(mark)}
+            disabled={isOperationLoading}
           >
             {mark}
           </Button>
@@ -246,6 +255,7 @@ export const StudentPerformanceCard = ({ studentPerformance, onPress }: StudentP
           textColor={negativeColor}
           mode="outlined"
           onPress={handleDownVote}
+          disabled={isOperationLoading}
         >
           <Icon name="thumb-down" size={16} />
         </Button>

@@ -1,14 +1,12 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { RootStackScreenProps } from '../../navigation/types'
-import { ActivityIndicator, Appbar, Divider, MD3Theme, Text, useTheme } from 'react-native-paper'
+import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
 import {
-  Animated,
-  BackHandler,
-  FlatList,
   InteractionManager,
   NativeScrollEvent,
+  NativeSyntheticEvent,
   RefreshControl,
-  ScrollView,
+  StatusBar,
   StyleSheet,
   TextInput,
   View,
@@ -19,17 +17,14 @@ import { useStore } from '../../shared/hooks/useStore'
 import { PageContainer } from '../../components/PageContainer'
 import { getBestMatchIndex, normalizeText } from '../../shared/utils'
 import { getStorageItem, setStorageItem } from '../../shared/storage'
+import { animated, useSpring } from 'react-spring'
+
+const HEADER_COLLAPSE_THRESHOLD = 20
+
+const AnimatedView = animated(View)
 
 export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const theme = useTheme()
-
-  const scrollOffsetY = useRef(new Animated.Value(0)).current
-
-  const translation = scrollOffsetY.interpolate({
-    inputRange: [100, 130],
-    outputRange: [0, 100],
-    extrapolate: 'clamp',
-  })
 
   const id = useMemo(
     // @ts-ignore
@@ -46,6 +41,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const [isScreenInitialized, setScreenInitialized] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [isCompact, setCompact] = useState(false)
+  const [isHeaderCollapsed, setHeaderCollapsed] = useState(false)
 
   const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
   const isClassLoaded = useMemo(() => !!class_, [class_])
@@ -107,8 +103,17 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
 
   const handleBack = useCallback(() => props.navigation.navigate('ClassList'), [props.navigation])
 
+  const handleScrollEvent = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setHeaderCollapsed(event.nativeEvent.contentOffset.y > HEADER_COLLAPSE_THRESHOLD)
+  }, [])
+
   const title = useMemo(() => `Clasa ${class_?.schoolYear}${class_?.label}`, [class_?.label, class_?.schoolYear])
   const subtitle = useMemo(() => class_?.school.name, [class_?.school.name])
+
+  const topHeaderAnimation = useSpring({
+    height: isHeaderCollapsed ? StatusBar.currentHeight || 0 : 104,
+    config: { mass: 1, tension: 510, friction: 40 },
+  })
 
   useEffect(() => {
     if (id && !areDetailsLoaded) {
@@ -133,13 +138,6 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   }, [])
 
   const styles = useMemo(() => makeStyles(theme), [theme])
-  const scrollEventHandler = useMemo(
-    () =>
-      Animated.event<NativeScrollEvent>([{ nativeEvent: { contentOffset: { y: scrollOffsetY } } }], {
-        useNativeDriver: false,
-      }),
-    [scrollOffsetY]
-  )
 
   const refreshControl = useMemo(
     () => <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />,
@@ -151,6 +149,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
     [styles.appbar, styles.appbarTop]
   )
 
+  // OVERKILL !??
   const cards = useMemo(() => {
     return class_?.studentsPerformance?.map(sp => ({
       id: sp.id,
@@ -160,34 +159,37 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
 
   const topHeader = useMemo(
     () => (
-      <Appbar.Header style={topHeaderStyles}>
-        <Appbar.BackAction color={theme.colors.onPrimary} onPress={handleBack} />
-        {isLoading && !isClassLoaded && (
-          <Appbar.Content title={<ActivityIndicator animating={true} color={theme.colors.onPrimary} />} />
-        )}
+      <AnimatedView style={topHeaderAnimation}>
+        <Appbar.Header style={topHeaderStyles}>
+          <Appbar.BackAction color={theme.colors.onPrimary} onPress={handleBack} />
+          {isLoading && !isClassLoaded && (
+            <Appbar.Content title={<ActivityIndicator animating={true} color={theme.colors.onPrimary} />} />
+          )}
 
-        {(!isLoading || isClassLoaded) && (
-          <Appbar.Content color={theme.colors.onPrimary} title={title} subtitle={subtitle} />
-        )}
-        {(!isLoading || isClassLoaded) && (
-          <Appbar.Action
-            color={theme.colors.onPrimary}
-            icon={isCompact ? 'view-compact' : 'view-compact-outline'}
-            onPress={handleToggleCompact}
-          />
-        )}
-      </Appbar.Header>
+          {(!isLoading || isClassLoaded) && (
+            <Appbar.Content color={theme.colors.onPrimary} title={title} subtitle={subtitle} />
+          )}
+          {(!isLoading || isClassLoaded) && (
+            <Appbar.Action
+              color={theme.colors.onPrimary}
+              icon={isCompact ? 'view-compact' : 'view-compact-outline'}
+              onPress={handleToggleCompact}
+            />
+          )}
+        </Appbar.Header>
+      </AnimatedView>
     ),
     [
-      handleBack,
-      handleToggleCompact,
-      isCompact,
-      isLoading,
-      subtitle,
-      theme.colors.onPrimary,
-      title,
+      topHeaderAnimation,
       topHeaderStyles,
+      theme.colors.onPrimary,
+      handleBack,
+      isLoading,
       isClassLoaded,
+      title,
+      subtitle,
+      isCompact,
+      handleToggleCompact,
     ]
   )
 
@@ -233,13 +235,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
       key={id}
       refreshControl={refreshControl}
       keyboardShouldPersistTaps="always"
-      // data={studentsPerformance}
-      // renderItem={({ item }) => (
-      //   <StudentPerformanceCard studentPerformance={item} isCompact={isCompact} />
-      // )}
-      // keyExtractor={item => item.id.toString()}
-      // contentContainerStyle={styles.cards}
-
+      onScroll={handleScrollEvent}
       stickyHeaderIndices={[0]}
     >
       <View style={styles.header}>
@@ -283,6 +279,7 @@ const makeStyles = (theme: MD3Theme) =>
       color: theme.colors.onPrimary,
       backgroundColor: 'transparent',
       flexGrow: 1,
+      flexShrink: 1,
       fontSize: 18,
     },
     refreshIndicator: {

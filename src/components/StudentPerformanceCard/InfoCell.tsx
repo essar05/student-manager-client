@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   value: {
-
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
 })

@@ -3,9 +3,12 @@ import React, { useMemo, memo } from 'react'
 import { StyleSheet } from 'react-native'
 
 interface ContextMenuProps extends Pick<MenuProps, 'visible' | 'onDismiss'> {
-  onAddMissingHomework?: () => void
+  onOpen: () => void
+
+  onAddMissingHomework?: (amount: number) => () => void
   onDeleteMissingHomework?: () => void
   isDeleteMissingHomeworkDisabled?: boolean
+  isDeleteHalfMissingHomeworkDisabled?: boolean
 
   onAddLoudnessWarning?: () => void
   onDeleteLoudnessWarning?: () => void
@@ -20,9 +23,12 @@ export const ContextMenu = memo(
     visible,
     onDismiss,
 
+    onOpen,
+
     onAddMissingHomework,
     onDeleteMissingHomework,
     isDeleteMissingHomeworkDisabled,
+    isDeleteHalfMissingHomeworkDisabled,
 
     onDeleteLoudnessWarning,
     onAddLoudnessWarning,
@@ -39,13 +45,22 @@ export const ContextMenu = memo(
         contentStyle={styles.menu}
         visible={visible}
         onDismiss={onDismiss}
-        anchor={<IconButton icon="dots-vertical" mode={undefined} onPress={onDismiss} />}
+        anchor={<IconButton icon="dots-vertical" mode={undefined} onPress={onOpen} />}
       >
-        <Menu.Item onPress={onAddMissingHomework} title="Adauga tema nefacuta" />
+        <Menu.Item onPress={onAddMissingHomework?.(1)} title="Adauga tema nefacuta" />
         <Menu.Item
-          onPress={onDeleteMissingHomework}
+          onPress={onAddMissingHomework?.(-1)}
           disabled={isDeleteMissingHomeworkDisabled}
           title="Sterge tema nefacuta"
+        />
+
+        <Divider bold style={styles.menuDivider} />
+
+        <Menu.Item onPress={onAddMissingHomework?.(0.5)} title="Adauga 1/2 tema nefacuta" />
+        <Menu.Item
+          onPress={onAddMissingHomework?.(-0.5)}
+          disabled={isDeleteHalfMissingHomeworkDisabled}
+          title="Sterge 1/2 tema nefacuta"
         />
 
         <Divider bold style={styles.menuDivider} />

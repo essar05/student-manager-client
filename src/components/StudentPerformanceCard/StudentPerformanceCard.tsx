@@ -58,11 +58,14 @@ export const StudentPerformanceCard = memo(
       addActivityPoints(studentPerformance.classId, studentPerformance.id, -1)
     }, [addActivityPoints, studentPerformance.classId, studentPerformance.id])
 
-    const handleAddMissingHomework = useCallback(() => {
-      addMissingHomework(studentPerformance.classId, studentPerformance.id)
+    const handleAddMissingHomework = useCallback(
+      (amount: number) => () => {
+        addMissingHomework(studentPerformance.classId, studentPerformance.id, amount)
 
-      setMenuVisible(false)
-    }, [addMissingHomework, studentPerformance.classId, studentPerformance.id])
+        setMenuVisible(false)
+      },
+      [addMissingHomework, studentPerformance.classId, studentPerformance.id]
+    )
 
     const handleDeleteMissingHomework = useCallback(() => {
       deleteLastMissingHomework(studentPerformance.classId, studentPerformance.id)
@@ -140,9 +143,13 @@ export const StudentPerformanceCard = memo(
         <ContextMenu
           visible={isMenuVisible}
           onDismiss={() => setMenuVisible(false)}
+          onOpen={() => setMenuVisible(true)}
           onAddMissingHomework={handleAddMissingHomework}
           onDeleteMissingHomework={handleDeleteMissingHomework}
-          isDeleteMissingHomeworkDisabled={!studentPerformance.missingHomeworks}
+          isDeleteMissingHomeworkDisabled={
+            !studentPerformance.missingHomeworks || studentPerformance.missingHomeworks < 1
+          }
+          isDeleteHalfMissingHomeworkDisabled={!studentPerformance.missingHomeworks}
           onAddLoudnessWarning={handleAddLoudnessWarning}
           onDeleteLoudnessWarning={handleDeleteLoudnessWarning}
           isDeleteLoudnessWarningDisabled={!studentPerformance.loudnessWarnings}
@@ -179,6 +186,7 @@ export const StudentPerformanceCard = memo(
             <Divider />
 
             <MarksCell
+              isCompact={isCompact}
               style={styles.cardContent}
               labelStyle={styles.cardContentLabel}
               activityScores={studentPerformance.activityScores}
@@ -245,6 +253,8 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   cardContentLabel: {
+    flexShrink: 1,
+    overflow: 'hidden',
     marginLeft: 4,
     marginBottom: 5,
   },
@@ -258,5 +268,8 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: 'bold',
+  },
+  menuDivider: {
+    // backgroundColor: theme.colors.surface,
   },
 })

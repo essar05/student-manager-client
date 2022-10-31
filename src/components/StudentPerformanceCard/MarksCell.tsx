@@ -8,25 +8,21 @@ interface MarksCellProps {
   labelStyle: TextStyle
 
   activityScores?: ActivityScore[]
+
+  isCompact?: boolean
 }
 
-export const MarksCell = memo(({ style, labelStyle, activityScores }: MarksCellProps) => {
-  const sortedActivityScores = useMemo(
-    () =>
-      activityScores
-        ? [...activityScores]?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        : undefined,
-    []
-  )
-
+export const MarksCell = memo(({ style, labelStyle, activityScores, isCompact }: MarksCellProps) => {
   return (
     <Card.Content style={style}>
-      <Text variant={'labelLarge'} style={labelStyle}>
-        Note activitate
-      </Text>
+      {!isCompact && (
+        <Text variant={'labelLarge'} style={labelStyle}>
+          Note activitate
+        </Text>
+      )}
 
       <View style={styles.marks}>
-        {sortedActivityScores?.map((activityScore, index) => (
+        {activityScores?.map((activityScore, index) => (
           <Chip key={activityScore.id} textStyle={styles.markText} style={styles.mark} mode={'flat'} compact>
             {activityScore.score}
           </Chip>

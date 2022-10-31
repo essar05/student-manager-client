@@ -12,10 +12,14 @@ react-native Android app client for student-manager.
 
 ### Queue Production APK build
 
-`eas build --profile production`
+```bash
+$  eas build --profile production
+```
 
 ### Development
 
-`yarn start`
+```bash
+$  yarn start
+```
 
 Install Expo Go on your Android phone and scan the QR code in the console. Alternatively run in web mode (untested)

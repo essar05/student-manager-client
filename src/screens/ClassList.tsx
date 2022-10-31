@@ -5,12 +5,14 @@ import { InteractionManager, RefreshControl, ScrollView, StyleSheet } from 'reac
 import { useStore } from '../shared/hooks/useStore'
 import { PageContainer } from '../components/PageContainer'
 import { clearStorageItem } from '../shared/storage'
+import { Class } from '../shared/store/models/class'
 
 export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
 
   const fetchClasses = useStore(state => state.fetch)
   const classes = useStore(state => state.classes)
+  const classesOrder = useStore(state => state.classesOrder)
   const isStoreLoading = useStore(state => state.isLoading)
   const isInitialized = useStore(state => state.isInitialized)
 
@@ -52,15 +54,11 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
 
   const CardList = useMemo(
     () =>
-      Object.keys(classes)
-        .map((id: string) => {
-          const classId = parseInt(id)
-          return classes[classId]
+      classesOrder
+        .map((id: number) => {
+          return classes[id]
         })
-        .sort((a, b) =>
-          a.schoolYear < b.schoolYear ? -1 : a.schoolYear > b.schoolYear ? 1 : a.label.localeCompare(b.label)
-        )
-        .map(class_ => {
+        .map((class_: Class) => {
           return (
             <Card key={class_.id} style={styles.card} elevation={1} onPress={handleNavigate(class_.id)}>
               <Card.Title
@@ -71,7 +69,7 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
             </Card>
           )
         }),
-    [classes, handleNavigate, styles.card]
+    [classes, classesOrder, handleNavigate, styles.card]
   )
 
   return (

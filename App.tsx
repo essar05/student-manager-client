@@ -32,7 +32,7 @@ const DARK_THEME = {
   colors: {
     ...MD3DarkTheme.colors,
     background: 'rgb(26,26,30)',
-    primary: 'rgb(138,104,210)',
+    primary: 'rgb(86,130,211)',
     accent: '#f1c40f',
     surface: 'rgb(53,50,58)',
   },

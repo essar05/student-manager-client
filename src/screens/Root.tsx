@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ClassList } from './ClassList'
 import { AppStackScreenProps } from '../navigation/types'
-import { Class } from './Class'
+import { Class } from './Class/Class'
 import { memo } from 'react'
 
 const Stack = createNativeStackNavigator()

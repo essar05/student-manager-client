@@ -3,11 +3,11 @@ import { AppStackScreenProps } from '../navigation/types'
 import { KeyboardAvoidingView, StyleSheet, View } from 'react-native'
 import { Button, MD3Theme, Text, TextInput, useTheme } from 'react-native-paper'
 import { PageContainer } from '../components/PageContainer'
-import { useCallback, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useStore } from '../shared/hooks/useStore'
 import { setStorageItem } from '../shared/storage'
 
-export const Login = (props: AppStackScreenProps<'Login'>) => {
+export const Login = memo((props: AppStackScreenProps<'Login'>) => {
   const [hasLoginError, setLoginError] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -34,12 +34,19 @@ export const Login = (props: AppStackScreenProps<'Login'>) => {
   const styles = makeStyles(theme)
 
   return (
-    <PageContainer>
+    <PageContainer keyboardShouldPersistTaps="always">
       <KeyboardAvoidingView style={styles.container} behavior="height">
-        <Text variant="headlineLarge" style={styles.header}>StudentManager</Text>
-        {hasLoginError && <Text variant="bodyMedium" style={styles.message}>Username or password incorrect</Text>}
+        <Text variant="headlineLarge" style={styles.header}>
+          StudentManager
+        </Text>
+        {hasLoginError && (
+          <Text variant="bodyMedium" style={styles.message}>
+            Username or password incorrect
+          </Text>
+        )}
 
         <TextInput
+          blurOnSubmit={false}
           style={styles.input}
           autoComplete={'username'}
           label="Username"
@@ -49,6 +56,7 @@ export const Login = (props: AppStackScreenProps<'Login'>) => {
         />
 
         <TextInput
+          blurOnSubmit={false}
           style={styles.input}
           autoComplete={'password'}
           label="Password"
@@ -58,11 +66,13 @@ export const Login = (props: AppStackScreenProps<'Login'>) => {
           onChangeText={text => setPassword(text)}
         />
 
-        <Button mode={'contained'} style={styles.button} labelStyle={styles.buttonText} onPress={handleLogin}>Login</Button>
+        <Button mode={'contained'} style={styles.button} labelStyle={styles.buttonText} onPress={handleLogin}>
+          Login
+        </Button>
       </KeyboardAvoidingView>
     </PageContainer>
   )
-}
+})
 
 const makeStyles = (theme: MD3Theme) =>
   StyleSheet.create({

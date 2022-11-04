@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from 'react'
-import { Button, Card, MD3Theme, useTheme } from 'react-native-paper'
+import { Button, Card, useTheme } from 'react-native-paper'
 import { negativeColor, positiveColor } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { StyleSheet, ViewStyle } from 'react-native'
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   actions: {
     display: 'flex',
     flexDirection: 'row',
-    paddingTop: 15,
+    paddingTop: 10,
     paddingBottom: 0,
     paddingLeft: 15,
     paddingRight: 15,

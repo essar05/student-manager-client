@@ -15,7 +15,7 @@ export const InfoCell = memo(({ style, labelStyle, label, value, icon }: InfoCel
   const cardContentCellStyle = useMemo(() => StyleSheet.compose<ViewStyle>(style, styles.cardContentCell), [style])
   return (
     <Card.Content style={cardContentCellStyle}>
-      <Text variant={'labelLarge'} style={labelStyle}>
+      <Text numberOfLines={1} variant={'labelLarge'} style={labelStyle}>
         {label}
       </Text>
 

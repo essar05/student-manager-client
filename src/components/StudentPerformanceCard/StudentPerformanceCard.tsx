@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useMemo, useState } from 'react'
-import { Button, Card, Chip, Divider, IconButton, MD3Theme, Menu, Text, useTheme } from 'react-native-paper'
-import { StyleSheet, View, ViewStyle } from 'react-native'
-import { negativeColor, positiveColor } from '../../constants/Colors'
+import { Card, Divider, Text, useTheme } from 'react-native-paper'
+import { Pressable, StyleSheet, View, ViewStyle } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { StudentPerformance } from '../../shared/store/models/studentPerformance'
 import { useStore } from '../../shared/hooks/useStore'
@@ -103,7 +102,7 @@ export const StudentPerformanceCard = memo(
 
     const title = useMemo(
       () => (
-        <Text variant={'titleLarge'}>
+        <Text>
           <Text style={styles.boldText}>{studentPerformance.student.lastName}</Text>{' '}
           {studentPerformance.student.firstName}
         </Text>
@@ -170,16 +169,25 @@ export const StudentPerformanceCard = memo(
       ]
     )
 
+    const [isActionsEnabled, setActionsEnabled] = useState(false)
+    const handleToggleActionsEnabled = useCallback(() => setActionsEnabled(enabled => !enabled), [])
+
     return (
       <Card key={studentPerformance.id} style={cardStyle} elevation={1}>
-        <Card.Title
-          title={title}
-          subtitle={subtitle}
-          titleNumberOfLines={2}
-          titleVariant={'titleLarge'}
-          rightStyle={styles.titleRight}
-          right={renderContextMenu}
-        />
+        <Pressable onPress={handleToggleActionsEnabled}>
+          <Card.Title
+            title={title}
+            subtitle={subtitle}
+            titleNumberOfLines={3}
+            titleVariant={'titleLarge'}
+            subtitleVariant={'bodyLarge'}
+            rightStyle={styles.titleRight}
+            right={renderContextMenu}
+            style={styles.cardTitle}
+            titleStyle={styles.cardTitleTitle}
+            subtitleStyle={!isCompact ? { height: 0 } : undefined}
+          />
+        </Pressable>
 
         {!!studentPerformance.activityScores?.length && (
           <>
@@ -231,7 +239,9 @@ export const StudentPerformanceCard = memo(
 
         {!isCompact && <Divider />}
 
-        <Actions handleAddMark={handleAddMark} handleUpVote={handleUpVote} handleDownVote={handleDownVote} />
+        {(isActionsEnabled || !isCompact) && (
+          <Actions handleAddMark={handleAddMark} handleUpVote={handleUpVote} handleDownVote={handleDownVote} />
+        )}
       </Card>
     )
   }
@@ -245,6 +255,17 @@ const styles = StyleSheet.create({
   hidden: {
     display: 'none',
     marginBottom: 0,
+  },
+  cardTitle: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingRight: 15,
+    paddingLeft: 15,
+    minHeight: 70,
+  },
+  cardTitleTitle: {
+    padding: 0,
+    margin: 0,
   },
   cardContentVertical: {
     display: 'flex',

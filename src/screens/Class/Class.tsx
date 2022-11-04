@@ -1,12 +1,13 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RootStackScreenProps } from '../../navigation/types'
 import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
 import {
+  Dimensions,
   InteractionManager,
+  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   RefreshControl,
-  StatusBar,
   StyleSheet,
   TextInput,
   View,
@@ -19,7 +20,8 @@ import { getBestMatchIndex, normalizeText } from '../../shared/utils'
 import { getStorageItem, setStorageItem } from '../../shared/storage'
 import { animated, useSpring } from 'react-spring'
 
-const HEADER_COLLAPSE_THRESHOLD = 20
+const HEADER_COLLAPSE_THRESHOLD = 40
+const HEADER_EXPAND_THRESHOLD = 80
 
 const AnimatedView = animated(View)
 
@@ -42,6 +44,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [isCompact, setCompact] = useState(false)
   const [isHeaderCollapsed, setHeaderCollapsed] = useState(false)
+  const [contentHeight, setContentHeight] = useState(0)
 
   const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
   const isClassLoaded = useMemo(() => !!class_, [class_])
@@ -103,16 +106,33 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
 
   const handleBack = useCallback(() => props.navigation.navigate('ClassList'), [props.navigation])
 
+  const previousScrollOffset = useRef<number | null>(null)
+
   const handleScrollEvent = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setHeaderCollapsed(event.nativeEvent.contentOffset.y > HEADER_COLLAPSE_THRESHOLD)
+    setContentHeight(event.nativeEvent.contentSize.height)
+
+    const offset = event.nativeEvent.contentOffset.y
+    const isScrollingUp = previousScrollOffset.current && previousScrollOffset.current > offset
+
+    const isHeaderCollapsed = !isScrollingUp ? offset > HEADER_COLLAPSE_THRESHOLD : offset > HEADER_EXPAND_THRESHOLD
+
+    setHeaderCollapsed(isHeaderCollapsed)
+    previousScrollOffset.current = offset
   }, [])
+
+  const isHeaderCollapsingEnabled = useMemo(() => {
+    return contentHeight - Dimensions.get('screen').height > 200
+  }, [contentHeight])
 
   const title = useMemo(() => `Clasa ${class_?.schoolYear}${class_?.label}`, [class_?.label, class_?.schoolYear])
   const subtitle = useMemo(() => class_?.school.name, [class_?.school.name])
 
+  const [topHeaderHeight, setTopHeaderHeight] = useState<number | null>(null)
+
   const topHeaderAnimation = useSpring({
-    height: isHeaderCollapsed ? StatusBar.currentHeight || 0 : 104,
+    height: isHeaderCollapsed && isHeaderCollapsingEnabled ? 0 : topHeaderHeight || 0,
     config: { mass: 1, tension: 510, friction: 40 },
+    immediate: topHeaderHeight === null,
   })
 
   useEffect(() => {
@@ -157,10 +177,14 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
     }))
   }, [class_?.studentsPerformance, isCompact])
 
-  const topHeader = useMemo(
-    () => (
+  const topHeader = useMemo(() => {
+    const handleLayout = (event: LayoutChangeEvent) => {
+      setTopHeaderHeight(event.nativeEvent.layout.height)
+    }
+
+    return (
       <AnimatedView style={topHeaderAnimation}>
-        <Appbar.Header style={topHeaderStyles}>
+        <Appbar.Header style={topHeaderStyles} onLayout={handleLayout} statusBarHeight={0}>
           <Appbar.BackAction color={theme.colors.onPrimary} onPress={handleBack} />
           {isLoading && !isClassLoaded && (
             <Appbar.Content title={<ActivityIndicator animating={true} color={theme.colors.onPrimary} />} />
@@ -178,20 +202,19 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
           )}
         </Appbar.Header>
       </AnimatedView>
-    ),
-    [
-      topHeaderAnimation,
-      topHeaderStyles,
-      theme.colors.onPrimary,
-      handleBack,
-      isLoading,
-      isClassLoaded,
-      title,
-      subtitle,
-      isCompact,
-      handleToggleCompact,
-    ]
-  )
+    )
+  }, [
+    topHeaderAnimation,
+    topHeaderStyles,
+    theme.colors.onPrimary,
+    handleBack,
+    isLoading,
+    isClassLoaded,
+    title,
+    subtitle,
+    isCompact,
+    handleToggleCompact,
+  ])
 
   const searchHeader = useMemo(
     () =>
@@ -239,6 +262,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
       stickyHeaderIndices={[0]}
     >
       <View style={styles.header}>
+        <Appbar.Header style={[styles.appbar, { height: 0 }]}>{null}</Appbar.Header>
         {topHeader}
         {searchHeader}
       </View>
@@ -270,11 +294,7 @@ const makeStyles = (theme: MD3Theme) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.inversePrimary,
     },
-    header: {
-      // position: 'absolute',
-      // top: 0,
-      // width: '100%',
-    },
+    header: {},
     searchbar: {
       color: theme.colors.onPrimary,
       backgroundColor: 'transparent',

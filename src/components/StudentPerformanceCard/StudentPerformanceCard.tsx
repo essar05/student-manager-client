@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     paddingTop: 10,
     paddingBottom: 10,
-    paddingRight: 15,
+    paddingRight: 0,
     paddingLeft: 15,
     minHeight: 70,
   },

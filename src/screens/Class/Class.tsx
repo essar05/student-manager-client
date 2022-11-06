@@ -18,10 +18,10 @@ import { useStore } from '../../shared/hooks/useStore'
 import { PageContainer } from '../../components/PageContainer'
 import { getBestMatchIndex, normalizeText } from '../../shared/utils'
 import { getStorageItem, setStorageItem } from '../../shared/storage'
-import { animated, useSpring } from 'react-spring'
+import { animated, useSpring } from '@react-spring/native'
 
 const HEADER_COLLAPSE_THRESHOLD = 40
-const HEADER_EXPAND_THRESHOLD = 80
+const HEADER_EXPAND_THRESHOLD = 150
 
 const AnimatedView = animated(View)
 
@@ -88,7 +88,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
       : class_?.studentsPerformance
   }, [class_?.studentsPerformance, searchKeyword])
 
-  const handleSearchKeywordChange = useCallback(value => setSearchKeyword(value), [])
+  const handleSearchKeywordChange = useCallback((value: string) => setSearchKeyword(value), [])
 
   const handleClearSearchKeyword = useCallback(() => handleSearchKeywordChange(''), [handleSearchKeywordChange])
 
@@ -107,17 +107,27 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const handleBack = useCallback(() => props.navigation.navigate('ClassList'), [props.navigation])
 
   const previousScrollOffset = useRef<number | null>(null)
+  const previousIsScrollingUp = useRef<boolean | null>(null)
 
   const handleScrollEvent = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     setContentHeight(event.nativeEvent.contentSize.height)
 
+    const yVelocity = event.nativeEvent.velocity?.y || 1
+
     const offset = event.nativeEvent.contentOffset.y
-    const isScrollingUp = previousScrollOffset.current && previousScrollOffset.current > offset
+    const isScrollingUp = !!previousScrollOffset.current && previousScrollOffset.current > offset
 
-    const isHeaderCollapsed = !isScrollingUp ? offset > HEADER_COLLAPSE_THRESHOLD : offset > HEADER_EXPAND_THRESHOLD
+    const isHeaderCollapsed =
+      !isScrollingUp
+        ? offset > Math.max(HEADER_COLLAPSE_THRESHOLD * yVelocity * -1, HEADER_COLLAPSE_THRESHOLD)
+        : offset > Math.max(HEADER_EXPAND_THRESHOLD * yVelocity * -1, HEADER_EXPAND_THRESHOLD)
 
-    setHeaderCollapsed(isHeaderCollapsed)
+    if ((isScrollingUp && !isHeaderCollapsed) || (!isScrollingUp && isHeaderCollapsed)) {
+      setHeaderCollapsed(isHeaderCollapsed)
+    }
+
     previousScrollOffset.current = offset
+    previousIsScrollingUp.current = isScrollingUp
   }, [])
 
   const isHeaderCollapsingEnabled = useMemo(() => {
@@ -130,9 +140,10 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const [topHeaderHeight, setTopHeaderHeight] = useState<number | null>(null)
 
   const topHeaderAnimation = useSpring({
-    height: isHeaderCollapsed && isHeaderCollapsingEnabled ? 0 : topHeaderHeight || 0,
+    zIndex: -1,
+    translateY: -(isHeaderCollapsed && isHeaderCollapsingEnabled ? topHeaderHeight || 0 : 0),
     config: { mass: 1, tension: 510, friction: 40 },
-    immediate: topHeaderHeight === null,
+    immediate: topHeaderHeight === null || !isScreenInitialized,
   })
 
   useEffect(() => {
@@ -219,28 +230,35 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   const searchHeader = useMemo(
     () =>
       !isLoading || isClassLoaded ? (
-        <Appbar.Header style={styles.appbar} statusBarHeight={0}>
-          <Appbar.Action color={theme.colors.onPrimary} icon="magnify" />
+        <AnimatedView
+          style={{
+            translateY: topHeaderAnimation.translateY,
+          }}
+        >
+          <Appbar.Header style={styles.appbar} statusBarHeight={0}>
+            <Appbar.Action color={theme.colors.onPrimary} icon="magnify" />
 
-          <TextInput
-            blurOnSubmit={false}
-            value={searchKeyword}
-            //left={<TextInput.Icon icon="magnify" color={theme.colors.onPrimary} />}
-            onChangeText={handleSearchKeywordChange}
-            placeholder={'Caută după nume'}
-            style={styles.searchbar}
-            placeholderTextColor={theme.colors.onPrimary}
-            selectionColor={theme.colors.onPrimary}
-          />
+            <TextInput
+              blurOnSubmit={false}
+              value={searchKeyword}
+              //left={<TextInput.Icon icon="magnify" color={theme.colors.onPrimary} />}
+              onChangeText={handleSearchKeywordChange}
+              placeholder={'Caută după nume'}
+              style={styles.searchbar}
+              placeholderTextColor={theme.colors.onPrimary}
+              selectionColor={theme.colors.onPrimary}
+            />
 
-          <Appbar.Action color={theme.colors.onPrimary} icon="close" onPress={handleClearSearchKeyword} />
-        </Appbar.Header>
+            <Appbar.Action color={theme.colors.onPrimary} icon="close" onPress={handleClearSearchKeyword} />
+          </Appbar.Header>
+        </AnimatedView>
       ) : null,
     [
       handleClearSearchKeyword,
       handleSearchKeywordChange,
       isClassLoaded,
       isLoading,
+      topHeaderAnimation,
       searchKeyword,
       styles.appbar,
       styles.searchbar,
@@ -294,7 +312,9 @@ const makeStyles = (theme: MD3Theme) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.inversePrimary,
     },
-    header: {},
+    header: {
+      zIndex: 0,
+    },
     searchbar: {
       color: theme.colors.onPrimary,
       backgroundColor: 'transparent',

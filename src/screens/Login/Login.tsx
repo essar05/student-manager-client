@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { AppStackScreenProps } from '../navigation/types'
+import { AppStackScreenProps } from '../../navigation/types'
 import { KeyboardAvoidingView, StyleSheet, View } from 'react-native'
 import { Button, MD3Theme, Text, TextInput, useTheme } from 'react-native-paper'
-import { PageContainer } from '../components/PageContainer'
+import { PageContainer } from '../../components/PageContainer'
 import { memo, useCallback, useState } from 'react'
-import { useStore } from '../shared/hooks/useStore'
-import { setStorageItem } from '../shared/storage'
+import { useStore } from '../../shared/hooks/useStore'
+import { setStorageItem } from '../../shared/storage'
 
 export const Login = memo((props: AppStackScreenProps<'Login'>) => {
   const [hasLoginError, setLoginError] = useState(false)

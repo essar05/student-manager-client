@@ -1,11 +1,11 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { RootStackScreenProps } from '../navigation/types'
+import { RootStackScreenProps } from '../../navigation/types'
 import { Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
-import { InteractionManager, RefreshControl, ScrollView, StyleSheet } from 'react-native'
-import { useStore } from '../shared/hooks/useStore'
-import { PageContainer } from '../components/PageContainer'
-import { clearStorageItem } from '../shared/storage'
-import { Class } from '../shared/store/models/class'
+import { InteractionManager, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
+import { useStore } from '../../shared/hooks/useStore'
+import { PageContainer } from '../../components/PageContainer'
+import { clearStorageItem } from '../../shared/storage'
+import { Class } from '../../shared/store/models/class'
 
 export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
@@ -73,11 +73,16 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
   )
 
   return (
-    <PageContainer refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}>
-      <Appbar.Header style={styles.appbar}>
-        <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
-        <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
-      </Appbar.Header>
+    <PageContainer
+      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
+      stickyHeaderIndices={[0]}
+    >
+      <View>
+        <Appbar.Header style={styles.appbar}>
+          <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
+          <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
+        </Appbar.Header>
+      </View>
 
       {/*{isLoading && <ActivityIndicator animating={true} />}*/}
 

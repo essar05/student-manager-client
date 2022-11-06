@@ -7,7 +7,7 @@ import NotFoundScreen from '../screens/NotFoundScreen'
 import { AppStackParamList } from './types'
 import LinkingConfiguration from './LinkingConfiguration'
 import { Root } from '../screens/Root'
-import { Login } from '../screens/Login'
+import { Login } from '../screens/Login/Login'
 import { useStore } from '../shared/hooks/useStore'
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {

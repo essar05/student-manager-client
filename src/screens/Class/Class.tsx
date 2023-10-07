@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { RootStackScreenProps } from '../../navigation/types'
-import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
+import { animated, useSpring } from '@react-spring/native'
 import {
   Dimensions,
   InteractionManager,
@@ -13,12 +12,14 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
-import { StudentPerformanceCard } from '../../components/StudentPerformanceCard/StudentPerformanceCard'
-import { useStore } from '../../shared/hooks/useStore'
+import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
+
 import { PageContainer } from '../../components/PageContainer'
-import { getBestMatchIndex, normalizeText } from '../../shared/utils'
+import { StudentPerformanceCard } from '../../components/StudentPerformanceCard/StudentPerformanceCard'
+import { RootStackScreenProps } from '../../navigation/types'
+import { useStore } from '../../shared/hooks/useStore'
 import { getStorageItem, setStorageItem } from '../../shared/storage'
-import { animated, useSpring } from '@react-spring/native'
+import { getBestMatchIndex, normalizeText } from '../../shared/utils'
 
 const HEADER_COLLAPSE_THRESHOLD = 40
 const HEADER_EXPAND_THRESHOLD = 150
@@ -117,10 +118,9 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
     const offset = event.nativeEvent.contentOffset.y
     const isScrollingUp = !!previousScrollOffset.current && previousScrollOffset.current > offset
 
-    const isHeaderCollapsed =
-      !isScrollingUp
-        ? offset > Math.max(HEADER_COLLAPSE_THRESHOLD * yVelocity * -1, HEADER_COLLAPSE_THRESHOLD)
-        : offset > Math.max(HEADER_EXPAND_THRESHOLD * yVelocity * -1, HEADER_EXPAND_THRESHOLD)
+    const isHeaderCollapsed = !isScrollingUp
+      ? offset > Math.max(HEADER_COLLAPSE_THRESHOLD * yVelocity * -1, HEADER_COLLAPSE_THRESHOLD)
+      : offset > Math.max(HEADER_EXPAND_THRESHOLD * yVelocity * -1, HEADER_EXPAND_THRESHOLD)
 
     if ((isScrollingUp && !isHeaderCollapsed) || (!isScrollingUp && isHeaderCollapsed)) {
       setHeaderCollapsed(isHeaderCollapsed)
@@ -176,7 +176,7 @@ export const Class = memo((props: RootStackScreenProps<'Class'>) => {
   )
 
   const topHeaderStyles = useMemo(
-    () => StyleSheet.compose<ViewStyle>(styles.appbar, styles.appbarTop),
+    () => StyleSheet.compose(styles.appbar, styles.appbarTop),
     [styles.appbar, styles.appbarTop]
   )
 

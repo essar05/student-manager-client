@@ -1,10 +1,11 @@
+import React, { useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { MD3DarkTheme, MD3LightTheme, Provider as PaperProvider } from 'react-native-paper'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+
 import useCachedResources from './src/hooks/useCachedResources'
 import useColorScheme from './src/hooks/useColorScheme'
 import Navigation from './src/navigation/navigation'
-import React, { useEffect } from 'react'
 import { useStore } from './src/shared/hooks/useStore'
 import { getStorageItem } from './src/shared/storage'
 
@@ -39,6 +40,8 @@ const DARK_THEME = {
 }
 
 export default function App() {
+  console.log('hello world')
+
   const isAuthenticated = useStore(state => state.isAuthenticated)
   const updateToken = useStore(state => state.updateToken)
   const logout = useStore(state => state.logout)
@@ -67,6 +70,9 @@ export default function App() {
 
   const isLoadingComplete = useCachedResources()
   const colorScheme = useColorScheme()
+
+  console.log(isLoadingComplete)
+  console.log(isAuthenticated)
 
   if (!isLoadingComplete || isAuthenticated === undefined) {
     return null

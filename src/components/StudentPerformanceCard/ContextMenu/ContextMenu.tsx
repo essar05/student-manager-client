@@ -1,6 +1,8 @@
-import { Divider, IconButton, MD3Theme, Menu, MenuProps, useTheme } from 'react-native-paper'
-import React, { useMemo, memo } from 'react'
-import { StyleSheet } from 'react-native'
+import { memo } from 'react'
+import { Divider, IconButton, Menu, MenuProps } from 'react-native-paper'
+
+import { useStyles } from '../../../shared/hooks/useStyles'
+import { styles } from './ContextMenu.styles'
 
 interface ContextMenuProps extends Pick<MenuProps, 'visible' | 'onDismiss'> {
   onOpen: () => void
@@ -26,7 +28,6 @@ export const ContextMenu = memo(
     onOpen,
 
     onAddMissingHomework,
-    onDeleteMissingHomework,
     isDeleteMissingHomeworkDisabled,
     isDeleteHalfMissingHomeworkDisabled,
 
@@ -37,12 +38,11 @@ export const ContextMenu = memo(
     onDeleteLastMark,
     isDeleteLastMarkDisabled,
   }: ContextMenuProps) => {
-    const theme = useTheme()
-    const styles = useMemo(() => makeStyles(theme), [theme])
+    const styled = useStyles(styles)
 
     return (
       <Menu
-        contentStyle={styles.menu}
+        contentStyle={styled.menu}
         visible={visible}
         onDismiss={onDismiss}
         anchor={<IconButton icon="dots-vertical" mode={undefined} onPress={onOpen} />}
@@ -54,7 +54,7 @@ export const ContextMenu = memo(
           title="Sterge tema nefacuta"
         />
 
-        <Divider bold style={styles.menuDivider} />
+        <Divider bold style={styled.menuDivider} />
 
         <Menu.Item onPress={onAddMissingHomework?.(0.5)} title="Adauga 1/2 tema nefacuta" />
         <Menu.Item
@@ -63,7 +63,7 @@ export const ContextMenu = memo(
           title="Sterge 1/2 tema nefacuta"
         />
 
-        <Divider bold style={styles.menuDivider} />
+        <Divider bold style={styled.menuDivider} />
 
         <Menu.Item onPress={onAddLoudnessWarning} title="Adauga punct zgomot" />
         <Menu.Item
@@ -72,24 +72,14 @@ export const ContextMenu = memo(
           title="Sterge punct zgomot"
         />
 
-        <Divider bold style={styles.menuDivider} />
+        <Divider bold style={styled.menuDivider} />
 
         <Menu.Item onPress={onDeleteLastMark} disabled={isDeleteLastMarkDisabled} title="Sterge ultima nota" />
 
-        <Divider bold style={styles.menuDivider} />
+        <Divider bold style={styled.menuDivider} />
 
         <Menu.Item onPress={() => {}} title="Vezi detalii" disabled />
       </Menu>
     )
   }
 )
-
-const makeStyles = (theme: MD3Theme) =>
-  StyleSheet.create({
-    menu: {
-      backgroundColor: theme.colors.surfaceVariant,
-    },
-    menuDivider: {
-      backgroundColor: theme.colors.surface,
-    },
-  })

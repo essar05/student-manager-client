@@ -5,12 +5,6 @@
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 
-declare global {
-  namespace ReactNavigation {
-    interface AppParamList extends AppStackParamList {}
-  }
-}
-
 export type AppStackParamList = {
   Login: undefined
   Root: NavigatorScreenParams<RootStackParamList> | undefined
@@ -28,10 +22,7 @@ export type RootStackParamList = {
   Class: { id: number }
 }
 
-// export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList,
-//   Screen>;
-
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = CompositeScreenProps<
-  AppStackScreenProps<'Root'>,
-  NativeStackScreenProps<RootStackParamList, Screen>
+  NativeStackScreenProps<RootStackParamList, Screen>,
+  NativeStackScreenProps<AppStackParamList>
 >

@@ -1,13 +1,16 @@
-import React, { memo, useCallback, useMemo, useState } from 'react'
-import { Card, Divider, Text, useTheme } from 'react-native-paper'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native'
+import { Card, Divider, Text, useTheme } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { StudentPerformance } from '../../shared/store/models/studentPerformance'
+
 import { useStore } from '../../shared/hooks/useStore'
-import { Actions } from './Actions'
-import { InfoCell } from './InfoCell'
-import { MarksCell } from './MarksCell'
-import { ContextMenu } from './ContextMenu'
+import { useStyles } from '../../shared/hooks/useStyles'
+import { StudentPerformance } from '../../shared/store/models/studentPerformance'
+import { Actions } from './Actions/Actions'
+import { ContextMenu } from './ContextMenu/ContextMenu'
+import { InfoCell } from './InfoCell/InfoCell'
+import { MarksCell } from './MarksCell/MarksCell'
+import { styles } from './StudentPerformanceCard.styles'
 
 export interface StudentPerformanceCardProps {
   studentPerformance: StudentPerformance
@@ -96,14 +99,14 @@ export const StudentPerformanceCard = memo(
     }, [studentPerformance.activityScores])
 
     const cardStyle = useMemo(
-      () => StyleSheet.compose<ViewStyle>(styles.card, !isVisible ? styles.hidden : undefined),
+      () => StyleSheet.compose<ViewStyle>(styled.card, !isVisible ? styled.hidden : undefined),
       [isVisible]
     )
 
     const title = useMemo(
       () => (
         <Text>
-          <Text style={styles.boldText}>{studentPerformance.student.lastName}</Text>{' '}
+          <Text style={styled.boldText}>{studentPerformance.student.lastName}</Text>{' '}
           {studentPerformance.student.firstName}
         </Text>
       ),
@@ -172,6 +175,8 @@ export const StudentPerformanceCard = memo(
     const [isActionsEnabled, setActionsEnabled] = useState(false)
     const handleToggleActionsEnabled = useCallback(() => setActionsEnabled(enabled => !enabled), [])
 
+    const styled = useStyles(styles)
+
     return (
       <Card key={studentPerformance.id} style={cardStyle} elevation={1}>
         <Pressable onPress={handleToggleActionsEnabled}>
@@ -181,10 +186,10 @@ export const StudentPerformanceCard = memo(
             titleNumberOfLines={3}
             titleVariant={'titleLarge'}
             subtitleVariant={'bodyLarge'}
-            rightStyle={styles.titleRight}
+            rightStyle={styled.titleRight}
             right={renderContextMenu}
-            style={styles.cardTitle}
-            titleStyle={styles.cardTitleTitle}
+            style={styled.cardTitle}
+            titleStyle={styled.cardTitleTitle}
             subtitleStyle={!isCompact ? { height: 0 } : undefined}
           />
         </Pressable>
@@ -195,8 +200,8 @@ export const StudentPerformanceCard = memo(
 
             <MarksCell
               isCompact={isCompact}
-              style={styles.cardContent}
-              labelStyle={styles.cardContentLabel}
+              style={styled.cardContent}
+              labelStyle={styled.cardContentLabel}
               activityScores={studentPerformance.activityScores}
             />
           </>
@@ -205,31 +210,31 @@ export const StudentPerformanceCard = memo(
         <Divider />
 
         {!isCompact && (
-          <View style={styles.cardContentVertical}>
+          <View style={styled.cardContentVertical}>
             <InfoCell
-              style={styles.cardContent}
-              labelStyle={styles.cardContentLabel}
+              style={styled.cardContent}
+              labelStyle={styled.cardContentLabel}
               label="Nota finala"
               value={averageActivityScore || '-'}
               icon="school"
             />
             <InfoCell
-              style={styles.cardContent}
-              labelStyle={styles.cardContentLabel}
+              style={styled.cardContent}
+              labelStyle={styled.cardContentLabel}
               label="Puncte"
               value={studentPerformance.activityPoints || 0}
               icon="thumbs-up-down"
             />
             <InfoCell
-              style={styles.cardContent}
-              labelStyle={styles.cardContentLabel}
+              style={styled.cardContent}
+              labelStyle={styled.cardContentLabel}
               label="Teme nefacute"
               value={studentPerformance.missingHomeworks || 0}
               icon="book-off"
             />
             <InfoCell
-              style={styles.cardContent}
-              labelStyle={styles.cardContentLabel}
+              style={styled.cardContent}
+              labelStyle={styled.cardContentLabel}
               label="Zgomot"
               value={studentPerformance.loudnessWarnings || 0}
               icon="volume-high"
@@ -246,51 +251,3 @@ export const StudentPerformanceCard = memo(
     )
   }
 )
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 15,
-    padding: 0,
-  },
-  hidden: {
-    display: 'none',
-    marginBottom: 0,
-  },
-  cardTitle: {
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingRight: 0,
-    paddingLeft: 15,
-    minHeight: 70,
-  },
-  cardTitleTitle: {
-    padding: 0,
-    margin: 0,
-  },
-  cardContentVertical: {
-    display: 'flex',
-    flexDirection: 'row',
-    paddingRight: 10,
-    paddingLeft: 10,
-  },
-  cardContentLabel: {
-    flexShrink: 1,
-    overflow: 'hidden',
-    marginLeft: 4,
-    marginBottom: 5,
-  },
-  cardContent: {
-    padding: 10,
-  },
-  titleRight: {},
-  avgMark: {
-    backgroundColor: '#1d83c4',
-    color: '#fff',
-  },
-  boldText: {
-    fontWeight: 'bold',
-  },
-  menuDivider: {
-    // backgroundColor: theme.colors.surface,
-  },
-})

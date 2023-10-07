@@ -1,18 +1,16 @@
+import { memo, useMemo } from 'react'
+import { ScrollView, ScrollViewProps, StyleSheet } from 'react-native'
 import { MD3Theme, useTheme } from 'react-native-paper'
-import { Animated, ScrollView, ScrollViewProps, StyleSheet, ViewStyle } from 'react-native'
-import React, { memo, useMemo } from 'react'
 
-export interface PageContainerProps extends ScrollViewProps {
+export interface PageContainerProps extends ScrollViewProps {}
 
-}
-
-export const PageContainer = memo(({ ...props }: PageContainerProps) => {
+export const PageContainer = memo((props: PageContainerProps) => {
   const theme = useTheme()
   const styles = useMemo(() => makeStyles(theme), [theme])
 
-  const style = StyleSheet.compose<ViewStyle>(styles.surface, props.style)
+  const style = StyleSheet.compose(styles.surface, props.style)
   const contentContainerStyle = useMemo(
-    () => StyleSheet.compose<ViewStyle>(styles.surfaceContent, props.contentContainerStyle),
+    () => StyleSheet.compose(styles.surfaceContent, props.contentContainerStyle),
     [props.contentContainerStyle, styles.surfaceContent]
   )
 

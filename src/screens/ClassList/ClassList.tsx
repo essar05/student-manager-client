@@ -1,13 +1,16 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { RootStackScreenProps } from '../../navigation/types'
-import { Appbar, Card, MD3Theme, useTheme } from 'react-native-paper'
-import { InteractionManager, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
-import { useStore } from '../../shared/hooks/useStore'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { InteractionManager, RefreshControl, ScrollView, View } from 'react-native'
+import { Appbar, Card, useTheme } from 'react-native-paper'
+
 import { PageContainer } from '../../components/PageContainer'
+import { RootStackScreenProps } from '../../navigation/types'
+import { useStore } from '../../shared/hooks/useStore'
+import { useStyles } from '../../shared/hooks/useStyles'
 import { clearStorageItem } from '../../shared/storage'
 import { Class } from '../../shared/store/models/class'
+import { styles } from './ClassList.styles'
 
-export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
+export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
 
   const fetchClasses = useStore(state => state.fetch)
@@ -31,11 +34,11 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
 
   const handleNavigate = useCallback(
     (id: number) => () => {
-      props.navigation.navigate('Class', {
-        id: id,
+      navigate('Class', {
+        id,
       })
     },
-    [props.navigation]
+    [navigate]
   )
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
     })
   }, [])
 
-  const styles = useMemo(() => makeStyles(theme), [theme])
+  const styled = useStyles(styles)
 
   const CardList = useMemo(
     () =>
@@ -60,7 +63,7 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
         })
         .map((class_: Class) => {
           return (
-            <Card key={class_.id} style={styles.card} elevation={1} onPress={handleNavigate(class_.id)}>
+            <Card key={class_.id} style={styled.card} elevation={1} onPress={handleNavigate(class_.id)}>
               <Card.Title
                 title={`${class_.schoolYear}${class_.label}`}
                 subtitle={class_.school.name}
@@ -69,7 +72,7 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
             </Card>
           )
         }),
-    [classes, classesOrder, handleNavigate, styles.card]
+    [classes, classesOrder, handleNavigate, styled.card]
   )
 
   return (
@@ -78,7 +81,7 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
       stickyHeaderIndices={[0]}
     >
       <View>
-        <Appbar.Header style={styles.appbar}>
+        <Appbar.Header style={styled.appbar}>
           <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
           <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
         </Appbar.Header>
@@ -86,23 +89,7 @@ export const ClassList = memo((props: RootStackScreenProps<'ClassList'>) => {
 
       {/*{isLoading && <ActivityIndicator animating={true} />}*/}
 
-      {!isLoading && <ScrollView style={styles.cards}>{CardList}</ScrollView>}
+      {!isLoading && <ScrollView style={styled.cards}>{CardList}</ScrollView>}
     </PageContainer>
   )
 })
-
-const makeStyles = (theme: MD3Theme) =>
-  StyleSheet.create({
-    appbar: {
-      backgroundColor: theme.colors.primary,
-      color: theme.colors.inversePrimary,
-    },
-    cards: {
-      paddingTop: 20,
-      paddingHorizontal: 10,
-    },
-    card: {
-      marginBottom: 15,
-      padding: 10,
-    },
-  })

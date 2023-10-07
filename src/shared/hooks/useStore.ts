@@ -1,4 +1,6 @@
-import { createStore } from "../store/store"
 import { API_URL } from '../constants'
+import { createAPIClient } from '../store/api'
+import { createStore } from '../store/store'
 
-export const useStore = createStore(API_URL || '')
+export const api = createAPIClient(API_URL || '')
+export const useStore = createStore(api)

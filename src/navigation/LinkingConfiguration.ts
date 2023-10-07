@@ -4,24 +4,25 @@
  * https://reactnavigation.org/docs/configuring-links
  */
 
-import { LinkingOptions } from '@react-navigation/native';
-import * as Linking from 'expo-linking';
-import { AppStackParamList } from './types';
+import { LinkingOptions } from '@react-navigation/native'
+import * as Linking from 'expo-linking'
+
+import { AppStackParamList } from './types'
 
 const linking: LinkingOptions<AppStackParamList> = {
-  prefixes: [ Linking.makeUrl('/') ],
+  prefixes: [Linking.createURL('/')],
   config: {
     screens: {
       Root: {
         screens: {
           ClassList: 'classes',
-          Class: 'class/:id'
-        }
+          Class: 'class/:id',
+        },
       },
       Modal: 'modal',
-      NotFound: '*'
-    }
-  }
-};
+      NotFound: '*',
+    },
+  },
+}
 
-export default linking;
+export default linking

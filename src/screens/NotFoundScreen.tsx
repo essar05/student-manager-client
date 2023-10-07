@@ -1,7 +1,7 @@
 import React from 'react'
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Text } from 'react-native-paper'
 
-import { Text, View } from '../components/Themed'
 import { AppStackScreenProps } from '../navigation/types'
 
 export default function NotFoundScreen({ navigation }: AppStackScreenProps<'NotFound'>) {

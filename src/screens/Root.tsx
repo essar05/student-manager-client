@@ -1,17 +1,17 @@
-import React, { memo } from 'react'
+import { memo } from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import { AppStackScreenProps, RootStackParamList } from '../navigation/types'
 import { Class } from './Class/Class'
 import { ClassList } from './ClassList/ClassList'
 
-const Stack = createNativeStackNavigator<RootStackParamList>()
+const RootStack = createNativeStackNavigator<RootStackParamList>()
 
-export const Root = memo((props: AppStackScreenProps<'Root'>) => {
+export const Root = memo((_: AppStackScreenProps<'Root'>) => {
   return (
-    <Stack.Navigator initialRouteName="ClassList">
-      <Stack.Screen name="ClassList" component={ClassList} options={{ headerShown: false }} />
-      <Stack.Screen name="Class" component={Class} options={{ headerShown: false }} />
-    </Stack.Navigator>
+    <RootStack.Navigator initialRouteName="ClassList">
+      <RootStack.Screen name="ClassList" component={ClassList} options={{ headerShown: false }} />
+      <RootStack.Screen name="Class" component={Class} options={{ headerShown: false }} />
+    </RootStack.Navigator>
   )
 })

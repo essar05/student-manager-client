@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react'
-import { StyleSheet } from 'react-native'
+import { MARKS } from '@essar05/student-manager-core'
 import { Button, Card, useTheme } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
@@ -17,8 +17,8 @@ export const Actions = memo(({ handleAddMark, handleUpVote, handleDownVote }: Ac
   const theme = useTheme()
   const styled = useStyles(styles)
 
-  const actionRightStyle = useMemo(() => StyleSheet.compose(styled.action, styled.actionRight), [])
-  const actionsBottomStyle = useMemo(() => StyleSheet.compose(styled.actions, styled.actionsBottom), [])
+  const actionRightStyle = useMemo(() => [styled.action, styled.actionRight], [])
+  const actionsBottomStyle = useMemo(() => [styled.actions, styled.actionsBottom], [])
 
   return (
     <>
@@ -78,7 +78,3 @@ export const Actions = memo(({ handleAddMark, handleUpVote, handleDownVote }: Ac
     </>
   )
 })
-
-const MARKS = Array(10)
-  .fill(0)
-  .map((_, index) => index + 1)

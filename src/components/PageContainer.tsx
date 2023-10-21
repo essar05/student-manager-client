@@ -8,13 +8,13 @@ export const PageContainer = memo((props: PageContainerProps) => {
   const theme = useTheme()
   const styles = useMemo(() => makeStyles(theme), [theme])
 
-  const style = StyleSheet.compose(styles.surface, props.style)
+  const style = [styles.surface, props.style]
   const contentContainerStyle = useMemo(
-    () => StyleSheet.compose(styles.surfaceContent, props.contentContainerStyle),
+    () => [styles.surfaceContent, props.contentContainerStyle],
     [props.contentContainerStyle, styles.surfaceContent]
   )
 
-  return <ScrollView {...props} style={style} contentContainerStyle={contentContainerStyle} />
+  return <ScrollView scrollEventThrottle={40} {...props} style={style} contentContainerStyle={contentContainerStyle} />
 })
 
 const makeStyles = (theme: MD3Theme) =>

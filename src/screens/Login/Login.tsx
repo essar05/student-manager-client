@@ -1,10 +1,10 @@
 import { memo, useCallback, useState } from 'react'
+import { useStore } from '@essar05/student-manager-core'
 import { KeyboardAvoidingView } from 'react-native'
 import { Button, Text, TextInput } from 'react-native-paper'
 
 import { PageContainer } from '../../components/PageContainer'
 import { AppStackScreenProps } from '../../navigation/types'
-import { useStore } from '../../shared/hooks/useStore'
 import { useStyles } from '../../shared/hooks/useStyles'
 import { setStorageItem } from '../../shared/storage'
 import { styles } from './Login.styles'
@@ -14,7 +14,7 @@ export const Login = memo((_: AppStackScreenProps<'Login'>) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const login = useStore(state => state.login)
+  const login = useStore(state => state.auth.actions.login)
 
   const handleLogin = useCallback(async () => {
     setLoginError(false)

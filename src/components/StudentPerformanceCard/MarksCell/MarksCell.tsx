@@ -1,9 +1,9 @@
 import { memo } from 'react'
+import { ActivityScore } from '@essar05/student-manager-core'
 import { TextStyle, View, ViewStyle } from 'react-native'
 import { Card, Chip, Text } from 'react-native-paper'
 
 import { useStyles } from '../../../shared/hooks/useStyles'
-import { ActivityScore } from '../../../shared/store/models/activityScore'
 import { styles } from './MarksCell.styles'
 
 interface MarksCellProps {

@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { selectClass, selectIsLoading, useStore } from '@essar05/student-manager-core'
 import { useSpring } from '@react-spring/native'
 import {
   Dimensions,
@@ -7,16 +8,14 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   RefreshControl,
-  StyleSheet,
   TextInput,
   View,
 } from 'react-native'
-import { ActivityIndicator, Appbar, MD3Theme, Text, useTheme } from 'react-native-paper'
+import { ActivityIndicator, Appbar, Text, useTheme } from 'react-native-paper'
 
 import { PageContainer } from '../../components/PageContainer'
-import { StudentPerformanceCard } from '../../components/StudentPerformanceCard/StudentPerformanceCard'
+import { StudentCard } from '../../components/StudentPerformanceCard/StudentCard'
 import { RootStackScreenProps } from '../../navigation/types'
-import { useStore } from '../../shared/hooks/useStore'
 import { useStyles } from '../../shared/hooks/useStyles'
 import { getStorageItem, setStorageItem } from '../../shared/storage'
 import { getBestMatchIndex, normalizeText } from '../../shared/utils'
@@ -27,17 +26,20 @@ const HEADER_EXPAND_THRESHOLD = 150
 
 export const Class = memo(
   ({
+    navigation,
     route: {
       params: { id },
     },
   }: RootStackScreenProps<'Class'>) => {
+    const semester = 1
+
     const theme = useTheme()
 
-    const fetchClass = useStore(state => state.fetchById)
-    const class_ = useStore(state => (id ? state.classes[id] : undefined))
-    const isStoreLoading = useStore(state => state.isLoading)
+    const fetchClass = useStore(state => state.classes.actions.fetchById)
+    const class_ = useStore(state => selectClass(state, id))
+    const isStoreLoading = useStore(selectIsLoading('class'))
 
-    const areDetailsLoaded = useMemo(() => class_?.studentsPerformance, [class_?.studentsPerformance])
+    const areDetailsLoaded = useMemo(() => class_?.students, [class_?.students])
 
     const [isScreenInitialized, setScreenInitialized] = useState(false)
     const [searchKeyword, setSearchKeyword] = useState('')
@@ -48,17 +50,17 @@ export const Class = memo(
     const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
     const isClassLoaded = useMemo(() => !!class_, [class_])
 
-    const studentsPerformance = useMemo(() => {
+    const students = useMemo(() => {
       const keyword = normalizeText(searchKeyword)
 
       return keyword !== ''
-        ? class_?.studentsPerformance
-            ?.map(sp => ({
-              firstNameMatch: getBestMatchIndex(sp.student.firstName, keyword),
-              lastNameMatch: getBestMatchIndex(sp.student.lastName, keyword),
-              studentPerformance: sp,
+        ? class_?.students
+            ?.map(s => ({
+              firstNameMatch: getBestMatchIndex(s.firstName, keyword),
+              lastNameMatch: getBestMatchIndex(s.lastName, keyword),
+              student: s,
             }))
-            .filter(spf => spf.firstNameMatch > -1 || spf.lastNameMatch > -1)
+            .filter(sf => sf.firstNameMatch > -1 || sf.lastNameMatch > -1)
             .sort((a, b) => {
               const matchIndexA =
                 a.firstNameMatch === -1
@@ -83,9 +85,9 @@ export const Class = memo(
 
               return 0
             })
-            .map(spf => spf.studentPerformance)
-        : class_?.studentsPerformance
-    }, [class_?.studentsPerformance, searchKeyword])
+            .map(sf => sf.student)
+        : class_?.students
+    }, [class_?.students, searchKeyword])
 
     const handleSearchKeywordChange = useCallback((value: string) => setSearchKeyword(value), [])
 
@@ -101,9 +103,9 @@ export const Class = memo(
       []
     )
 
-    const handleRefresh = useCallback(() => id && fetchClass(id), [fetchClass, id])
+    const handleRefresh = useCallback(() => id && fetchClass(id, semester), [fetchClass, semester, id])
 
-    const handleBack = useCallback(() => props.navigation.navigate('ClassList'), [props.navigation])
+    const handleBack = useCallback(() => navigation.navigate('ClassList'), [navigation])
 
     const previousScrollOffset = useRef<number | null>(null)
     const previousIsScrollingUp = useRef<boolean | null>(null)
@@ -145,10 +147,10 @@ export const Class = memo(
     })
 
     useEffect(() => {
-      if (id && !areDetailsLoaded) {
-        fetchClass(id)
+      if (id && semester && !areDetailsLoaded) {
+        fetchClass(id, semester)
       }
-    }, [fetchClass, id, areDetailsLoaded])
+    }, [fetchClass, id, semester, areDetailsLoaded])
 
     useEffect(() => {
       InteractionManager.runAfterInteractions(() => {
@@ -173,18 +175,15 @@ export const Class = memo(
       [handleRefresh, isLoading]
     )
 
-    const topHeaderStyles = useMemo(
-      () => StyleSheet.compose(styled.appbar, styled.appbarTop),
-      [styled.appbar, styled.appbarTop]
-    )
+    const topHeaderStyles = useMemo(() => [styled.appbar, styled.appbarTop], [styled.appbar, styled.appbarTop])
 
     // OVERKILL !??
     const cards = useMemo(() => {
-      return class_?.studentsPerformance?.map(sp => ({
-        id: sp.id,
-        JSX: <StudentPerformanceCard key={sp.id} studentPerformance={sp} isCompact={isCompact} />,
+      return class_?.students?.map(s => ({
+        id: s.id,
+        JSX: <StudentCard key={s.id} student={s} classId={id} semester={semester} isCompact={isCompact} />,
       }))
-    }, [class_?.studentsPerformance, isCompact])
+    }, [class_?.students, id, semester, isCompact])
 
     const topHeader = useMemo(() => {
       const handleLayout = (event: LayoutChangeEvent) => {
@@ -265,8 +264,8 @@ export const Class = memo(
     )
 
     const filteredCards = useMemo(
-      () => studentsPerformance?.map(sp => cards?.find(card => card.id === sp.id)?.JSX || null),
-      [cards, studentsPerformance]
+      () => students?.map(sp => cards?.find(card => card.id === sp.id)?.JSX || null),
+      [cards, students]
     )
 
     return (
@@ -286,10 +285,10 @@ export const Class = memo(
         <View style={styled.cards}>
           {!isLoading && filteredCards}
 
-          {areDetailsLoaded && !studentsPerformance?.length && searchKeyword === '' && (
+          {areDetailsLoaded && !students?.length && searchKeyword === '' && (
             <Text variant="bodyLarge">Aceasta clasa nu are elevi adaugati.</Text>
           )}
-          {areDetailsLoaded && !studentsPerformance?.length && searchKeyword !== '' && (
+          {areDetailsLoaded && !students?.length && searchKeyword !== '' && (
             <Text variant="bodyLarge">Cautarea nu are niciun rezultat.</Text>
           )}
         </View>
@@ -297,34 +296,3 @@ export const Class = memo(
     )
   }
 )
-
-const makeStyles = (theme: MD3Theme) =>
-  StyleSheet.create({
-    cards: {
-      paddingTop: 20,
-      paddingHorizontal: 10,
-    },
-    appbar: {
-      backgroundColor: theme.colors.primary,
-    },
-    appbarTop: {
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.inversePrimary,
-    },
-    header: {
-      zIndex: 0,
-    },
-    searchbar: {
-      color: theme.colors.onPrimary,
-      backgroundColor: 'transparent',
-      flexGrow: 1,
-      flexShrink: 1,
-      fontSize: 18,
-    },
-    refreshIndicator: {
-      marginTop: 20,
-    },
-    searchingIcon: {
-      marginRight: 10,
-    },
-  })

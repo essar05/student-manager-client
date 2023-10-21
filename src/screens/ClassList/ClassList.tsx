@@ -1,25 +1,25 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { Class, selectIsLoading, useStore } from '@essar05/student-manager-core'
 import { InteractionManager, RefreshControl, ScrollView, View } from 'react-native'
 import { Appbar, Card, useTheme } from 'react-native-paper'
 
 import { PageContainer } from '../../components/PageContainer'
 import { RootStackScreenProps } from '../../navigation/types'
-import { useStore } from '../../shared/hooks/useStore'
 import { useStyles } from '../../shared/hooks/useStyles'
 import { clearStorageItem } from '../../shared/storage'
-import { Class } from '../../shared/store/models/class'
 import { styles } from './ClassList.styles'
 
 export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
 
-  const fetchClasses = useStore(state => state.fetch)
-  const classes = useStore(state => state.classes)
-  const classesOrder = useStore(state => state.classesOrder)
-  const isStoreLoading = useStore(state => state.isLoading)
-  const isInitialized = useStore(state => state.isInitialized)
+  const yearId = 1
+  const fetchClasses = useStore(state => state.classes.actions.fetchAll)
+  const classes = useStore(state => state.classes.records)
+  const classesOrder = useStore(state => state.classes.order)
+  const isStoreLoading = useStore(selectIsLoading('class'))
+  const isInitialized = useStore(state => state.ui.isInitialized)
 
-  const logout = useStore(state => state.logout)
+  const logout = useStore(state => state.auth.actions.logout)
 
   const [isScreenInitialized, setScreenInitialized] = useState(false)
 
@@ -43,9 +43,9 @@ export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProp
 
   useEffect(() => {
     if (!isInitialized) {
-      fetchClasses()
+      fetchClasses(yearId)
     }
-  }, [fetchClasses, isInitialized])
+  }, [fetchClasses, isInitialized, yearId])
 
   useEffect(() => {
     InteractionManager.runAfterInteractions(() => {

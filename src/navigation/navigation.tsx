@@ -1,4 +1,5 @@
 import React from 'react'
+import { useStore } from '@essar05/student-manager-core'
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ColorSchemeName } from 'react-native'
@@ -7,7 +8,6 @@ import { Login } from '../screens/Login/Login'
 import ModalScreen from '../screens/ModalScreen'
 import NotFoundScreen from '../screens/NotFoundScreen'
 import { Root } from '../screens/Root'
-import { useStore } from '../shared/hooks/useStore'
 import LinkingConfiguration from './LinkingConfiguration'
 import { AppStackParamList } from './types'
 
@@ -26,7 +26,7 @@ export default function AppNavigation({ colorScheme }: { colorScheme: ColorSchem
 const AppStack = createNativeStackNavigator<AppStackParamList>()
 
 function AppNavigator() {
-  const isAuthenticated = useStore(state => state.isAuthenticated)
+  const isAuthenticated = useStore(state => state.auth.isAuthenticated)
 
   return (
     <AppStack.Navigator>

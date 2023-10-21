@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react'
-import { StyleSheet, TextStyle, View, ViewStyle } from 'react-native'
+import { TextStyle, View, ViewStyle } from 'react-native'
 import { Card, Chip, Text } from 'react-native-paper'
 
 import { useStyles } from '../../../shared/hooks/useStyles'
@@ -17,10 +17,7 @@ interface InfoCellProps {
 export const InfoCell = memo(({ style, labelStyle, label, value, icon }: InfoCellProps) => {
   const styled = useStyles(styles)
 
-  const cardContentCellStyle = useMemo(
-    () => StyleSheet.compose(style, styled.cardContentCell),
-    [style, styled.cardContentCell]
-  )
+  const cardContentCellStyle = useMemo(() => [style, styled.cardContentCell], [style, styled.cardContentCell])
 
   return (
     <Card.Content style={cardContentCellStyle}>

@@ -1,9 +1,8 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { Class, selectIsLoading, useStore } from '@essar05/student-manager-core'
-import { InteractionManager, RefreshControl, ScrollView, View } from 'react-native'
-import { Appbar, Card, useTheme } from 'react-native-paper'
+import { Class, selectIsLoading, selectLastAcademicYear, useStore } from '@essar05/student-manager-core'
+import { FlatList, InteractionManager, ListRenderItem, RefreshControl, View } from 'react-native'
+import { Appbar, Card, Text, useTheme } from 'react-native-paper'
 
-import { PageContainer } from '../../components/PageContainer'
 import { RootStackScreenProps } from '../../navigation/types'
 import { useStyles } from '../../shared/hooks/useStyles'
 import { clearStorageItem } from '../../shared/storage'
@@ -12,12 +11,15 @@ import { styles } from './ClassList.styles'
 export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProps<'ClassList'>) => {
   const theme = useTheme()
 
-  const yearId = 1
+  const lastYear = useStore(selectLastAcademicYear)
+  const yearId = lastYear?.id
+
+  const yearLabel = lastYear?.year ? `${lastYear.year} - ${lastYear.year + 1}` : '---'
+
   const fetchClasses = useStore(state => state.classes.actions.fetchAll)
   const classes = useStore(state => state.classes.records)
   const classesOrder = useStore(state => state.classes.order)
   const isStoreLoading = useStore(selectIsLoading('class'))
-  const isInitialized = useStore(state => state.ui.isInitialized)
 
   const logout = useStore(state => state.auth.actions.logout)
 
@@ -42,10 +44,8 @@ export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProp
   )
 
   useEffect(() => {
-    if (!isInitialized) {
-      fetchClasses(yearId)
-    }
-  }, [fetchClasses, isInitialized, yearId])
+    fetchClasses(yearId)
+  }, [fetchClasses, yearId])
 
   useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
@@ -55,41 +55,56 @@ export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProp
 
   const styled = useStyles(styles)
 
-  const CardList = useMemo(
+  const classList = useMemo(
     () =>
-      classesOrder
-        .map((id: number) => {
-          return classes[id]
-        })
-        .map((class_: Class) => {
-          return (
-            <Card key={class_.id} style={styled.card} elevation={1} onPress={handleNavigate(class_.id)}>
-              <Card.Title
-                title={`${class_.schoolYear}${class_.label}`}
-                subtitle={class_.school.name}
-                titleVariant={'titleLarge'}
-              />
-            </Card>
-          )
-        }),
+      classesOrder.map((id: number) => {
+        return classes[id]
+      }),
     [classes, classesOrder, handleNavigate, styled.card]
   )
 
+  const renderCard = useCallback<ListRenderItem<Class>>(
+    ({ item }) => (
+      <Card key={item.id} style={styled.card} elevation={1} onPress={handleNavigate(item.id)}>
+        <Card.Title title={`${item.schoolYear}${item.label}`} subtitle={item.school.name} titleVariant={'titleLarge'} />
+      </Card>
+    ),
+    [handleNavigate, styled.card]
+  )
+
   return (
-    <PageContainer
+    <FlatList
       refreshControl={<RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />}
       stickyHeaderIndices={[0]}
-    >
-      <View>
-        <Appbar.Header style={styled.appbar}>
-          <Appbar.Content title="Clase" color={theme.colors.onPrimary} />
-          <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
-        </Appbar.Header>
-      </View>
-
-      {/*{isLoading && <ActivityIndicator animating={true} />}*/}
-
-      {!isLoading && <ScrollView style={styled.cards}>{CardList}</ScrollView>}
-    </PageContainer>
+      style={{
+        height: '100%',
+      }}
+      ListHeaderComponent={
+        <View style={styled.header}>
+          <Appbar.Header style={styled.appbar}>
+            <Appbar.Content
+              title={
+                <>
+                  <Text style={styled.appbarTitle}>{'Clase'}</Text>
+                  <Text style={styled.appbarSubtitle}>{yearLabel}</Text>
+                </>
+              }
+              color={theme.colors.onPrimary}
+            />
+            <Appbar.Action icon="logout" onPress={handleLogout} color={theme.colors.onPrimary} />
+          </Appbar.Header>
+        </View>
+      }
+      ListEmptyComponent={
+        <>
+          <Text variant="bodyLarge">Nu au fost gasite clase.</Text>
+        </>
+      }
+      refreshing={isLoading}
+      keyboardShouldPersistTaps="always"
+      data={classList}
+      renderItem={renderCard}
+      keyExtractor={item => item.id.toString()}
+    />
   )
 })

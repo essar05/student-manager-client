@@ -6,14 +6,11 @@ export const LIGHT_THEME = {
 
   colors: {
     ...MD3LightTheme.colors,
-    primary: 'rgb(138,104,210)',
+    primary: '#2f98c5',
+
+    // primary: '#23B7E5',
     background: '#e8e8e8',
     secondary: '#d2d2d2',
-    // onSurface: '#ffffff',
-    // background: 'red',
-    // surface: 'green',
-    // text: '#ffffff',
-    // backdrop: 'pink'
   },
 }
 
@@ -23,10 +20,10 @@ export const DARK_THEME = {
   dark: true,
   colors: {
     ...MD3DarkTheme.colors,
-    background: 'rgb(26,26,30)',
-    primary: 'rgb(86,130,211)',
+    background: '#112226',
+    primary: '#2f98c5',
     accent: '#f1c40f',
-    surface: 'rgb(53,50,58)',
+    surface: '#2f98c5',
   },
 }
 

@@ -19,6 +19,7 @@ export const styles = makeStyles(theme => ({
   },
   header: {
     zIndex: 0,
+    marginBottom: 15,
   },
   searchbar: {
     color: theme.colors.onPrimary,

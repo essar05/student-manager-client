@@ -21,10 +21,10 @@ const makeStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     surface: {
       flex: 1,
-      minHeight: '100%',
+      height: '100%',
       backgroundColor: theme.colors.background,
     },
     surfaceContent: {
-      minHeight: '100%',
+      height: '100%',
     },
   })

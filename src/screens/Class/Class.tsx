@@ -1,28 +1,29 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { selectClass, selectIsLoading, useStore } from '@essar05/student-manager-core'
-import { useSpring } from '@react-spring/native'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Dimensions,
+  selectClass,
+  selectIsLoading,
+  StudentWithPerformance,
+  useSemester,
+  useStore,
+} from '@essar05/student-manager-core'
+import {
+  FlatList,
   InteractionManager,
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
+  ListRenderItem,
   RefreshControl,
+  SafeAreaView,
   TextInput,
   View,
 } from 'react-native'
 import { ActivityIndicator, Appbar, Text, useTheme } from 'react-native-paper'
 
-import { PageContainer } from '../../components/PageContainer'
 import { StudentCard } from '../../components/StudentPerformanceCard/StudentCard'
 import { RootStackScreenProps } from '../../navigation/types'
 import { useStyles } from '../../shared/hooks/useStyles'
 import { getStorageItem, setStorageItem } from '../../shared/storage'
 import { getBestMatchIndex, normalizeText } from '../../shared/utils'
 import { AnimatedView, styles } from './Class.styles'
-
-const HEADER_COLLAPSE_THRESHOLD = 40
-const HEADER_EXPAND_THRESHOLD = 150
+import { ContextMenu } from './ContextMenu/ContextMenu'
 
 export const Class = memo(
   ({
@@ -31,21 +32,23 @@ export const Class = memo(
       params: { id },
     },
   }: RootStackScreenProps<'Class'>) => {
-    const semester = 1
-
     const theme = useTheme()
 
     const fetchClass = useStore(state => state.classes.actions.fetchById)
     const class_ = useStore(state => selectClass(state, id))
     const isStoreLoading = useStore(selectIsLoading('class'))
 
+    const { maxSemester } = useSemester(undefined, class_)
+
+    const [inputSemester, setInputSemester] = useState<1 | 2>(2)
+
+    const semester = maxSemester && inputSemester > maxSemester ? maxSemester : inputSemester
+
     const areDetailsLoaded = useMemo(() => class_?.students, [class_?.students])
 
     const [isScreenInitialized, setScreenInitialized] = useState(false)
     const [searchKeyword, setSearchKeyword] = useState('')
     const [isCompact, setCompact] = useState(false)
-    const [isHeaderCollapsed, setHeaderCollapsed] = useState(false)
-    const [contentHeight, setContentHeight] = useState(0)
 
     const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
     const isClassLoaded = useMemo(() => !!class_, [class_])
@@ -107,44 +110,8 @@ export const Class = memo(
 
     const handleBack = useCallback(() => navigation.navigate('ClassList'), [navigation])
 
-    const previousScrollOffset = useRef<number | null>(null)
-    const previousIsScrollingUp = useRef<boolean | null>(null)
-
-    const handleScrollEvent = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setContentHeight(event.nativeEvent.contentSize.height)
-
-      const yVelocity = event.nativeEvent.velocity?.y || 1
-
-      const offset = event.nativeEvent.contentOffset.y
-      const isScrollingUp = !!previousScrollOffset.current && previousScrollOffset.current > offset
-
-      const isHeaderCollapsed = !isScrollingUp
-        ? offset > Math.max(HEADER_COLLAPSE_THRESHOLD * yVelocity * -1, HEADER_COLLAPSE_THRESHOLD)
-        : offset > Math.max(HEADER_EXPAND_THRESHOLD * yVelocity * -1, HEADER_EXPAND_THRESHOLD)
-
-      if ((isScrollingUp && !isHeaderCollapsed) || (!isScrollingUp && isHeaderCollapsed)) {
-        setHeaderCollapsed(isHeaderCollapsed)
-      }
-
-      previousScrollOffset.current = offset
-      previousIsScrollingUp.current = isScrollingUp
-    }, [])
-
-    const isHeaderCollapsingEnabled = useMemo(() => {
-      return contentHeight - Dimensions.get('screen').height > 200
-    }, [contentHeight])
-
     const title = useMemo(() => `Clasa ${class_?.schoolYear}${class_?.label}`, [class_?.label, class_?.schoolYear])
     const subtitle = useMemo(() => class_?.school.name, [class_?.school.name])
-
-    const [topHeaderHeight, setTopHeaderHeight] = useState<number | null>(null)
-
-    const topHeaderAnimation = useSpring({
-      zIndex: -1,
-      translateY: -(isHeaderCollapsed && isHeaderCollapsingEnabled ? topHeaderHeight || 0 : 0),
-      config: { mass: 1, tension: 510, friction: 40 },
-      immediate: topHeaderHeight === null || !isScreenInitialized,
-    })
 
     useEffect(() => {
       if (id && semester && !areDetailsLoaded) {
@@ -170,6 +137,19 @@ export const Class = memo(
 
     const styled = useStyles(styles)
 
+    const [isMenuVisible, setMenuVisible] = useState(false)
+
+    const closeMenu = useCallback(() => setMenuVisible(false), [])
+    const openMenu = useCallback(() => setMenuVisible(true), [])
+
+    const handleSelectSemester1 = useCallback(() => {
+      setInputSemester(1)
+    }, [])
+
+    const handleSelectSemester2 = useCallback(() => {
+      setInputSemester(2)
+    }, [])
+
     const refreshControl = useMemo(
       () => <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />,
       [handleRefresh, isLoading]
@@ -177,61 +157,10 @@ export const Class = memo(
 
     const topHeaderStyles = useMemo(() => [styled.appbar, styled.appbarTop], [styled.appbar, styled.appbarTop])
 
-    // OVERKILL !??
-    const cards = useMemo(() => {
-      return class_?.students?.map(s => ({
-        id: s.id,
-        JSX: <StudentCard key={s.id} student={s} classId={id} semester={semester} isCompact={isCompact} />,
-      }))
-    }, [class_?.students, id, semester, isCompact])
-
-    const topHeader = useMemo(() => {
-      const handleLayout = (event: LayoutChangeEvent) => {
-        setTopHeaderHeight(event.nativeEvent.layout.height)
-      }
-
-      return (
-        <AnimatedView style={topHeaderAnimation}>
-          <Appbar.Header style={topHeaderStyles} onLayout={handleLayout} statusBarHeight={0}>
-            <Appbar.BackAction color={theme.colors.onPrimary} onPress={handleBack} />
-            {isLoading && !isClassLoaded && (
-              <Appbar.Content title={<ActivityIndicator animating={true} color={theme.colors.onPrimary} />} />
-            )}
-
-            {(!isLoading || isClassLoaded) && (
-              <Appbar.Content color={theme.colors.onPrimary} title={title} subtitle={subtitle} />
-            )}
-            {(!isLoading || isClassLoaded) && (
-              <Appbar.Action
-                color={theme.colors.onPrimary}
-                icon={isCompact ? 'view-compact' : 'view-compact-outline'}
-                onPress={handleToggleCompact}
-              />
-            )}
-          </Appbar.Header>
-        </AnimatedView>
-      )
-    }, [
-      topHeaderAnimation,
-      topHeaderStyles,
-      theme.colors.onPrimary,
-      handleBack,
-      isLoading,
-      isClassLoaded,
-      title,
-      subtitle,
-      isCompact,
-      handleToggleCompact,
-    ])
-
     const searchHeader = useMemo(
       () =>
         !isLoading || isClassLoaded ? (
-          <AnimatedView
-            style={{
-              translateY: topHeaderAnimation.translateY,
-            }}
-          >
+          <AnimatedView>
             <Appbar.Header style={styled.appbar} statusBarHeight={0}>
               <Appbar.Action color={theme.colors.onPrimary} icon="magnify" />
 
@@ -255,7 +184,6 @@ export const Class = memo(
         handleSearchKeywordChange,
         isClassLoaded,
         isLoading,
-        topHeaderAnimation,
         searchKeyword,
         styled.appbar,
         styled.searchbar,
@@ -263,36 +191,82 @@ export const Class = memo(
       ]
     )
 
-    const filteredCards = useMemo(
-      () => students?.map(sp => cards?.find(card => card.id === sp.id)?.JSX || null),
-      [cards, students]
+    const renderCard = useCallback<ListRenderItem<StudentWithPerformance>>(
+      ({ item }) => <StudentCard student={item} classId={id} semester={semester} isCompact={isCompact} />,
+      [id, isCompact, semester]
     )
 
     return (
-      <PageContainer
-        key={id}
-        refreshControl={refreshControl}
-        keyboardShouldPersistTaps="always"
-        onScroll={handleScrollEvent}
-        stickyHeaderIndices={[0]}
-      >
-        <View style={styled.header}>
-          <Appbar.Header style={[styled.appbar, { height: 0 }]}>{null}</Appbar.Header>
-          {topHeader}
-          {searchHeader}
-        </View>
+      <SafeAreaView style={{ height: '100%' }}>
+        <FlatList
+          style={{
+            height: '100%',
+          }}
+          stickyHeaderHiddenOnScroll
+          stickyHeaderIndices={[0]}
+          // estimatedItemSize={isCompact ? 100 : 240}
+          // initialNumToRender={isCompact ? 10 : 6}
+          // maxToRenderPerBatch={isCompact ? 10 : 6}
+          // windowSize={10}
+          ListHeaderComponent={
+            <View style={styled.header}>
+              <Appbar.Header style={[styled.appbar, { height: 0 }]}>{null}</Appbar.Header>
+              <Appbar.Header style={topHeaderStyles} statusBarHeight={0}>
+                <Appbar.BackAction color={theme.colors.onPrimary} onPress={handleBack} />
+                {isLoading && !isClassLoaded && (
+                  <Appbar.Content title={<ActivityIndicator animating={true} color={theme.colors.onPrimary} />} />
+                )}
 
-        <View style={styled.cards}>
-          {!isLoading && filteredCards}
-
-          {areDetailsLoaded && !students?.length && searchKeyword === '' && (
-            <Text variant="bodyLarge">Aceasta clasa nu are elevi adaugati.</Text>
-          )}
-          {areDetailsLoaded && !students?.length && searchKeyword !== '' && (
-            <Text variant="bodyLarge">Cautarea nu are niciun rezultat.</Text>
-          )}
-        </View>
-      </PageContainer>
+                {(!isLoading || isClassLoaded) && (
+                  <Appbar.Content color={theme.colors.onPrimary} title={title} subtitle={subtitle} />
+                )}
+                {(!isLoading || isClassLoaded) && (
+                  <ContextMenu
+                    visible={isMenuVisible}
+                    onDismiss={closeMenu}
+                    onOpen={openMenu}
+                    semester={semester}
+                    onSemester1Select={handleSelectSemester1}
+                    onSemester2Select={handleSelectSemester2}
+                    isCompact={isCompact}
+                    onToggleCompact={handleToggleCompact}
+                  />
+                  //
+                  // <Appbar.Action
+                  //   color={theme.colors.onPrimary}
+                  //   icon={isCompact ? 'view-compact' : 'view-compact-outline'}
+                  //   onPress={renderContextMenu}
+                  // />
+                )}
+              </Appbar.Header>
+              {searchHeader}
+            </View>
+          }
+          ListEmptyComponent={
+            <>
+              {areDetailsLoaded && !students?.length && searchKeyword === '' && (
+                <Text variant="bodyLarge">Aceasta clasa nu are elevi adaugati.</Text>
+              )}
+              {areDetailsLoaded && !students?.length && searchKeyword !== '' && (
+                <Text variant="bodyLarge">Cautarea nu are niciun rezultat.</Text>
+              )}
+            </>
+          }
+          refreshControl={refreshControl}
+          refreshing={isLoading}
+          keyboardShouldPersistTaps="always"
+          // stickyHeaderIndices={[0]}
+          // sticky
+          data={students}
+          renderItem={renderCard}
+          extraData={{
+            isCompact,
+            semester,
+            classId: id,
+          }}
+          keyExtractor={item => item.id.toString()}
+        />
+      </SafeAreaView>
     )
   }
 )

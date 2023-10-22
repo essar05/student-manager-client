@@ -19,16 +19,18 @@ export const Login = memo((_: AppStackScreenProps<'Login'>) => {
   const handleLogin = useCallback(async () => {
     setLoginError(false)
 
-    const token = await login(username, password)
+    try {
+      const token = await login(username, password)
 
-    if (token) {
-      try {
+      if (token) {
         await setStorageItem('auth-token', token)
-      } catch (e) {
-        // Restoring token failed
+      } else {
+        setLoginError(true)
       }
-    } else {
+    } catch (e) {
       setLoginError(true)
+      console.log('error', e)
+      // Restoring token failed
     }
   }, [login, password, username])
 

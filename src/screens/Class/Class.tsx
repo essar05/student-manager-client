@@ -220,24 +220,25 @@ export const Class = memo(
                 {(!isLoading || isClassLoaded) && (
                   <Appbar.Content color={theme.colors.onPrimary} title={title} subtitle={subtitle} />
                 )}
-                {(!isLoading || isClassLoaded) && (
-                  <ContextMenu
-                    visible={isMenuVisible}
-                    onDismiss={closeMenu}
-                    onOpen={openMenu}
-                    semester={semester}
-                    onSemester1Select={handleSelectSemester1}
-                    onSemester2Select={handleSelectSemester2}
-                    isCompact={isCompact}
-                    onToggleCompact={handleToggleCompact}
-                  />
-                  //
-                  // <Appbar.Action
-                  //   color={theme.colors.onPrimary}
-                  //   icon={isCompact ? 'view-compact' : 'view-compact-outline'}
-                  //   onPress={renderContextMenu}
-                  // />
-                )}
+                {(!isLoading || isClassLoaded) &&
+                  (maxSemester === 2 ? (
+                    <ContextMenu
+                      visible={isMenuVisible}
+                      onDismiss={closeMenu}
+                      onOpen={openMenu}
+                      semester={semester}
+                      onSemester1Select={handleSelectSemester1}
+                      onSemester2Select={handleSelectSemester2}
+                      isCompact={isCompact}
+                      onToggleCompact={handleToggleCompact}
+                    />
+                  ) : (
+                    <Appbar.Action
+                      color={theme.colors.onPrimary}
+                      icon={isCompact ? 'view-compact' : 'view-compact-outline'}
+                      onPress={handleToggleCompact}
+                    />
+                  ))}
               </Appbar.Header>
               {searchHeader}
             </View>

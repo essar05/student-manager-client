@@ -27,7 +27,10 @@ export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProp
 
   const isLoading = useMemo(() => !isScreenInitialized || isStoreLoading, [isScreenInitialized, isStoreLoading])
 
-  const handleRefresh = useCallback(() => !isStoreLoading && fetchClasses(), [isStoreLoading, fetchClasses])
+  const handleRefresh = useCallback(
+    () => !isStoreLoading && yearId && fetchClasses(yearId),
+    [isStoreLoading, fetchClasses, yearId]
+  )
 
   const handleLogout = useCallback(() => {
     logout()
@@ -44,7 +47,9 @@ export const ClassList = memo(({ navigation: { navigate } }: RootStackScreenProp
   )
 
   useEffect(() => {
-    fetchClasses(yearId)
+    if (yearId) {
+      fetchClasses(yearId)
+    }
   }, [fetchClasses, yearId])
 
   useEffect(() => {
